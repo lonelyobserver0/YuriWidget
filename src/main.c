@@ -54,12 +54,6 @@ int main(int argc, char **argv)
     gtk_widget_show(webview);
     gtk_widget_show(popup_window);
 
-    // Se è stato fornito un ID di finestra principale, imposta la finestra popup come child
-    if (main_window_id) {
-        GdkWindow *gdk_main_window = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), main_window_id);
-        gtk_window_set_transient_for(GTK_WINDOW(popup_window), GTK_WINDOW(gdk_main_window));
-    }
-
     GdkWindow *gdk_window = gtk_widget_get_window(GTK_WIDGET(popup_window));
     gdk_window_lower(gdk_window);
 
