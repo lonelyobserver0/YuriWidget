@@ -11,6 +11,22 @@ static void destroy(GtkWidget *widget, gpointer data)
     gtk_main_quit();
 }
 
+void commandControl(char **argv)
+{
+    if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)
+    {
+        printf("\t\tmyVandal - Custom version of Vandal widget engine\n");
+        printf("myVandal <coor_x> <coor_y> <width> <height> <zoom> <url>\n");
+        printf("\t[ ARGUMENTS ]\n");
+        printf("<coor_x>\t\t\t(integer) Widget's x coordinate on the screen\n");
+        printf("<coor_y>\t\t\t(integer) Widget's y coordinate on the screen\n");
+        printf("<width>\t\t\t(integer) Widget's width\n");
+        printf("<height>\t\t\t(integer) Widget's height\n");
+        printf("<zoom>\t\t\t(integer) Widget's zoom\n");
+        printf("<width>\t\t\t(string) (HTML) Widget's config file path\n");
+    }
+}
+
 int main(int argc, char **argv)
 {
     const int x = atoi(argv[1]);
