@@ -2,19 +2,16 @@
 #include <stdlib.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
-#include <gdk/gdkx.h>
 #include <webkit2/webkit2.h>
 #include <string.h>
-#include <X11/Xlib.h>
 
-static void destroy(GtkWidget *widget, XPointer data)
+static void destroy(GtkWidget *widget, gpointer data)
 {
     gtk_main_quit();
 }
 
 int main(int argc, char **argv)
 {
-
     const int x = atoi(argv[1]);
     const int y = atoi(argv[2]);
     const int w = atoi(argv[3]);
@@ -22,40 +19,32 @@ int main(int argc, char **argv)
     const int zoom = atoi(argv[5]);
     const char *url = argv[6];
 
-
     gtk_init(&argc, &argv);
 
-    GtkWidget *popup_window = gtk_window_new(GTK_WINDOW_POPUP);
-    GdkScreen *screen = gtk_window_get_screen(GTK_WINDOW(popup_window));
-    GdkVisual *visual = gdk_screen_get_rgba_visual(screen);
-    gtk_widget_set_visual(GTK_WIDGET(popup_window), visual);
-    gtk_widget_set_app_paintable(GTK_WIDGET(popup_window), TRUE);
+    // Creare una finestra normale invece di una finestra popup
+    GtkWidget *main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_title(GTK_WINDOW(main_window), "vandal");
+    gtk_window_set_default_size(GTK_WINDOW(main_window), w, h);
+    gtk_window_move(GTK_WINDOW(main_window), x, y);
 
-    gtk_window_set_title(GTK_WINDOW(popup_window), "vandal");
-    gtk_window_set_type_hint(GTK_WINDOW(popup_window), GDK_WINDOW_TYPE_HINT_DESKTOP);
-    gtk_window_set_default_size(GTK_WINDOW(popup_window), w, h);
-    gtk_window_set_skip_taskbar_hint(GTK_WINDOW(popup_window), TRUE);
-    gtk_window_set_skip_pager_hint(GTK_WINDOW(popup_window), TRUE);
-    gtk_window_set_accept_focus(GTK_WINDOW(popup_window), FALSE);
-    gtk_window_set_focus_on_map(GTK_WINDOW(popup_window), FALSE);
-    gtk_window_move(GTK_WINDOW(popup_window), x, y);
+    // Impostazioni per la finestra
+    gtk_window_set_type_hint(GTK_WINDOW(main_window), GDK_WINDOW_TYPE_HINT_NORMAL);
+    gtk_window_set_accept_focus(GTK_WINDOW(main_window), TRUE);
+    gtk_window_set_focus_on_map(GTK_WINDOW(main_window), TRUE);
 
-    gtk_window_stick(GTK_WINDOW(popup_window));
-
+    // Creare il webview
     GtkWidget *webview = webkit_web_view_new();
-    webkit_web_view_load_uri((WebKitWebView *)webview, url);
+    webkit_web_view_load_uri(WEBKIT_WEB_VIEW(webview), url);
     GdkRGBA trs = {1.0, 1.0, 1.0, 0.0};
-    webkit_web_view_set_background_color((WebKitWebView *)webview, &trs);
-    webkit_web_view_set_zoom_level((WebKitWebView *)webview, zoom / 100.0);
+    webkit_web_view_set_background_color(WEBKIT_WEB_VIEW(webview), &trs);
+    webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(webview), zoom / 100.0);
 
-    g_signal_connect(popup_window, "destroy", G_CALLBACK(destroy), NULL);
+    g_signal_connect(main_window, "destroy", G_CALLBACK(destroy), NULL);
 
-    gtk_container_add(GTK_CONTAINER(popup_window), webview);
+    // Aggiungere il webview alla finestra principale
+    gtk_container_add(GTK_CONTAINER(main_window), webview);
     gtk_widget_show(webview);
-    gtk_widget_show(popup_window);
-
-    GdkWindow *gdk_window = gtk_widget_get_window(GTK_WIDGET(popup_window));
-    gdk_window_lower(gdk_window);
+    gtk_widget_show(main_window);
 
     gtk_main();
 
