@@ -5,6 +5,7 @@
 #include <webkit2/webkit2.h>
 #include <string.h>
 
+
 static void destroy(GtkWidget *widget, gpointer data)
 {
     gtk_main_quit();
