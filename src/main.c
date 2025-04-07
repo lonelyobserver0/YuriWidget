@@ -1,12 +1,13 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
-#include <gdk/gdkx.h>  // Assicurati di includere questa intestazione
+#include <gdk/gdkx.h>
 #include <webkit2/webkit2.h>
 #include <string.h>
 #include <X11/Xlib.h>
 
-static void destroy(GtkWidget *widget, gpointer data)
+static void destroy(GtkWidget *widget, XPointer data)
 {
     gtk_main_quit();
 }
@@ -31,7 +32,7 @@ int main(int argc, char **argv)
         char input_buffer[256];
         if (fgets(input_buffer, sizeof(input_buffer), stdin) != NULL) {
             printf("Input ricevuto: %s\n", input_buffer);
-            main_window_id = (Window)strtol(input_buffer, NULL, 0); // Converti l'ID della finestra principale
+            main_window_id = (Window)strtol(input_buffer, NULL, 0);
         }
         else {
             printf("ID non ricevuto");
