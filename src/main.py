@@ -3,7 +3,7 @@ import subprocess
 def get_main_window_id():
     try:
         result = subprocess.run(['hyprctl', 'clients'], capture_output=True, text=True)
-        
+        print(result.stdout)
         if result.returncode != 0:
             print("Errore nell'esecuzione di hyprctl:", result.stderr)
             return None

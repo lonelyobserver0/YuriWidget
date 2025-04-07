@@ -14,10 +14,6 @@ static void destroy(GtkWidget *widget, XPointer data)
 
 int main(int argc, char **argv)
 {
-    if (argc < 7 || argc > 9) {
-        printf("Usage: %s x y width height zoom URL [--main-window main_window_id]\n", argv[0]);
-        return 1;
-    }
 
     const int x = atoi(argv[1]);
     const int y = atoi(argv[2]);
@@ -25,19 +21,7 @@ int main(int argc, char **argv)
     const int h = atoi(argv[4]);
     const int zoom = atoi(argv[5]);
     const char *url = argv[6];
-    Window main_window_id = 0;
 
-    // Controlla se è stata fornita l'opzione --main-window
-    if (argc == 9 && strcmp(argv[7], "--main-window") == 0) {
-        char input_buffer[256];
-        if (fgets(input_buffer, sizeof(input_buffer), stdin) != NULL) {
-            printf("Input ricevuto: %s\n", input_buffer);
-            main_window_id = (Window)strtol(input_buffer, NULL, 0);
-        }
-        else {
-            printf("ID non ricevuto");
-        }
-    }
 
     gtk_init(&argc, &argv);
 
