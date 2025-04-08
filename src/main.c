@@ -6,6 +6,7 @@
 #include <string.h>
 
 
+
 static void destroy(GtkWidget *widget, gpointer data) { gtk_main_quit(); }
 void mainFun(int argc, char **argv);
 void helpMsg(int argc, char **argv);
