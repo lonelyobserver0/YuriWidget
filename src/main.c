@@ -6,12 +6,23 @@
 #include <string.h>
 
 
-static void destroy(GtkWidget *widget, gpointer data)
+static void destroy(GtkWidget *widget, gpointer data) { gtk_main_quit(); }
+void mainFun(int argc, char **argv);
+void helpMsg(int argc, char **argv);
+
+
+int main(int argc, char **argv)
 {
-    gtk_main_quit();
+    if (argc != 7)
+    {
+        if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) { helpMsg(argc, argv); }
+        else { mainFun(argc, argv); }
+    }
+    return 0;
 }
 
-int mainFun(int argc, char **argv)
+
+void mainFun(int argc, char **argv)
 {
 
 //    const int x = atoi(argv[1]);
@@ -57,31 +68,17 @@ int mainFun(int argc, char **argv)
     gtk_widget_show(main_window);
 
     gtk_main();
-
 }
 
-void main(int argc, char **argv)
-{
-    if (argc != 7)
-    {
-        if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)
-        {
-            printf("\t\tmyVandal - Custom version of Vandal widget engine\n");
-            printf("myVandal <coor_x> <coor_y> <width> <height> <zoom> <url>\n");
-            printf("\t[ ARGUMENTS ]\n");
-            printf("<coor_x>\t\t\t(integer) Widget's x coordinate on the screen\n");
-            printf("<coor_y>\t\t\t(integer) Widget's y coordinate on the screen\n");
-            printf("<width>\t\t\t(integer) Widget's width\n");
-            printf("<height>\t\t\t(integer) Widget's height\n");
-            printf("<zoom>\t\t\t(integer) Widget's zoom\n");
-            printf("<width>\t\t\t(string) (HTML) Widget's config file path\n");
 
-            return 0;
-        }
-        else
-        {
-            mainFun(argc, argv);
-            return 0;
-        }
-    }
+void helpMsg(int argc, char **argv) {
+    printf("\t\tmyVandal - Custom version of Vandal widget engine\n");
+    printf("myVandal <coor_x> <coor_y> <width> <height> <zoom> <url>\n");
+    printf("\t[ ARGUMENTS ]\n");
+    printf("<coor_x>\t\t\t(integer) Widget's x coordinate on the screen\n");
+    printf("<coor_y>\t\t\t(integer) Widget's y coordinate on the screen\n");
+    printf("<width>\t\t\t(integer) Widget's width\n");
+    printf("<height>\t\t\t(integer) Widget's height\n");
+    printf("<zoom>\t\t\t(integer) Widget's zoom\n");
+    printf("<width>\t\t\t(string) (HTML) Widget's config file path\n");
 }
