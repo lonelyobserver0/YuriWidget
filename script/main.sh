@@ -4,4 +4,5 @@ make
 mv build/myVandal bin
 cd bin
 #./myVandal 920 0 1000 300 100 file://$HOME/.config/Vandal/widget.html
-./myVandal -esc -title niermenuwidget -config file://$HOME/.config/Vandal/widget.html &
+./myVandal -esc -title niermenuwidget -config file://$HOME/.config/Vandal/widget.html
+ 

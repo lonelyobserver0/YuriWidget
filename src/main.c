@@ -124,6 +124,7 @@ void showWindow(const char *title) {
     while (fgets(line, sizeof(line), file)) {
         if (strstr(line, title) != NULL && strstr(line, "created:") != NULL) {
             // Se troviamo la finestra, cerchiamo di mostrare la finestra
+            // Va una bella modifica
             GList *windows = gtk_window_list_toplevels();
             for (GList *l = windows; l != NULL; l = l->next) {
                 GtkWidget *window = GTK_WIDGET(l->data);
