@@ -7,9 +7,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <getopt.h>
+#include <sys/un.h>
+#include <sys/socket.h>
 
 #define SOCKET_PATH "/tmp/yuriwidget.sock"
 #define LOG_FILE "/tmp/yuriwidget.log"
+
+static GtkWidget *main_window = NULL;
+static WebKitWebView *webview = NULL;
 
 static void log_message(const char *message) {
     FILE *log_file = fopen(LOG_FILE, "a");
@@ -21,24 +27,49 @@ static void log_message(const char *message) {
 }
 
 static void apply_hyprland_window_settings(GtkWidget *window) {
+    gtk_widget_set_app_paintable(window, TRUE);
+    gtk_widget_realize(window);
+
+    GdkScreen *screen = gtk_widget_get_screen(window);
+    GdkVisual *visual = gdk_screen_get_rgba_visual(screen);
+    if (visual && gdk_screen_is_composited(screen)) {
+        gtk_widget_set_visual(window, visual);
+    }
+
     GdkWindow *gdk_window = gtk_widget_get_window(window);
     if (gdk_window) {
-        // Imposta la finestra come trasparente
         GdkRGBA transparent = {0, 0, 0, 0};
         gdk_window_set_background_rgba(gdk_window, &transparent);
-
-        // Altri settaggi specifici per Hyprland possono essere aggiunti qui
     }
+
+    gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
 }
 
-static void socket_server_thread(void *arg) {
+typedef struct {
+    gboolean show;
+} WindowCommand;
+
+gboolean handle_window_command(gpointer data) {
+    WindowCommand *cmd = (WindowCommand *)data;
+    if (cmd->show) {
+        gtk_widget_show(main_window);
+    } else {
+        gtk_widget_hide(main_window);
+    }
+    free(cmd);
+    return FALSE;
+}
+
+static void *socket_server_thread(void *arg) {
+    unlink(SOCKET_PATH);
+
     int sockfd;
     struct sockaddr_un server_addr;
 
     sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (sockfd == -1) {
         log_message("Error creating socket");
-        return;
+        return NULL;
     }
 
     memset(&server_addr, 0, sizeof(struct sockaddr_un));
@@ -48,13 +79,13 @@ static void socket_server_thread(void *arg) {
     if (bind(sockfd, (struct sockaddr *)&server_addr, sizeof(struct sockaddr_un)) == -1) {
         log_message("Error binding socket");
         close(sockfd);
-        return;
+        return NULL;
     }
 
     if (listen(sockfd, 5) == -1) {
         log_message("Error listening on socket");
         close(sockfd);
-        return;
+        return NULL;
     }
 
     log_message("Server listening on socket...");
@@ -70,19 +101,16 @@ static void socket_server_thread(void *arg) {
         ssize_t len = read(client_fd, buffer, sizeof(buffer) - 1);
         if (len > 0) {
             buffer[len] = '\0';
-            log_message(buffer); // Log command received
+            log_message(buffer);
 
-            // Gestione dei comandi IPC
-            if (strncmp(buffer, "show ", 5) == 0) {
-                const char *title = buffer + 5;
-                // Gestisci il comando per mostrare la finestra con il titolo specificato
-                log_message("Show window with title: ");
-                log_message(title);
-            } else if (strncmp(buffer, "hide ", 5) == 0) {
-                const char *title = buffer + 5;
-                // Gestisci il comando per nascondere la finestra con il titolo specificato
-                log_message("Hide window with title: ");
-                log_message(title);
+            if (strncmp(buffer, "show", 4) == 0) {
+                WindowCommand *cmd = malloc(sizeof(WindowCommand));
+                cmd->show = TRUE;
+                g_idle_add(handle_window_command, cmd);
+            } else if (strncmp(buffer, "hide", 4) == 0) {
+                WindowCommand *cmd = malloc(sizeof(WindowCommand));
+                cmd->show = FALSE;
+                g_idle_add(handle_window_command, cmd);
             }
         }
 
@@ -90,17 +118,16 @@ static void socket_server_thread(void *arg) {
     }
 
     close(sockfd);
+    return NULL;
 }
 
-static GtkWidget *create_yuriwidget_window() {
-    GtkWidget *main_window;
-    WebKitWebView *webview;
-
+static GtkWidget *create_yuriwidget_window(const char *title, const char *url) {
     main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_title(GTK_WINDOW(main_window), "yuriwidget");
+    gtk_window_set_title(GTK_WINDOW(main_window), title);
     gtk_window_set_default_size(GTK_WINDOW(main_window), 800, 600);
 
     webview = WEBKIT_WEB_VIEW(webkit_web_view_new());
+    webkit_web_view_load_uri(webview, url);
     gtk_container_add(GTK_CONTAINER(main_window), GTK_WIDGET(webview));
 
     gtk_widget_show_all(main_window);
@@ -109,25 +136,45 @@ static GtkWidget *create_yuriwidget_window() {
 }
 
 static void destroy(GtkWidget *window, gpointer data) {
+    unlink(SOCKET_PATH);
     gtk_main_quit();
 }
 
 int main(int argc, char *argv[]) {
     gtk_init(&argc, &argv);
 
-    // Thread per il server socket IPC
+    const char *url = "https://example.com";
+    const char *title = "yuriwidget";
+
+    static struct option long_options[] = {
+        {"config-file", required_argument, 0, 'c'},
+        {"title", required_argument, 0, 't'},
+        {0, 0, 0, 0}
+    };
+
+    int opt;
+    while ((opt = getopt_long(argc, argv, "c:t:", long_options, NULL)) != -1) {
+        switch (opt) {
+            case 'c':
+                url = optarg;
+                break;
+            case 't':
+                title = optarg;
+                break;
+            default:
+                fprintf(stderr, "Usage: %s [-c|--config-file <url>] [-t|--title <window title>]\n", argv[0]);
+                exit(EXIT_FAILURE);
+        }
+    }
+
     pthread_t socket_thread;
-    pthread_create(&socket_thread, NULL, (void *(*)(void *))socket_server_thread, NULL);
+    pthread_create(&socket_thread, NULL, socket_server_thread, NULL);
 
-    GtkWidget *main_window = create_yuriwidget_window();
-
-    // Impostazioni specifiche per Hyprland
-    apply_hyprland_window_settings(main_window);
-
-    g_signal_connect(main_window, "destroy", G_CALLBACK(destroy), NULL);
+    GtkWidget *window = create_yuriwidget_window(title, url);
+    apply_hyprland_window_settings(window);
+    g_signal_connect(window, "destroy", G_CALLBACK(destroy), NULL);
 
     gtk_main();
-
     pthread_join(socket_thread, NULL);
 
     return 0;

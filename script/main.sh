@@ -2,5 +2,5 @@
 cd ../
 make
 cd build
-./yuriwidget -t niermenuwidget -cf file://$HOME/.config/yuriwidget/widget.html
+./yuriwidget --title niermenuwidget --config-file file://$HOME/.config/yuriwidget/widget.html
  
