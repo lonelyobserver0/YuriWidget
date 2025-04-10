@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/loneobs/myApps/myVandal/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

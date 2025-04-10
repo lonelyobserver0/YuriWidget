@@ -1,0 +1,1 @@
+/usr/bin/cc -Wl,--dependency-file=CMakeFiles/myVandal.dir/link.d CMakeFiles/myVandal.dir/src/main.c.o -o myVandal
