@@ -1,3 +1,0 @@
-/home/loneobs/myApps/myVandal/cmake-build-default/CMakeFiles/myVandal.dir
-/home/loneobs/myApps/myVandal/cmake-build-default/CMakeFiles/edit_cache.dir
-/home/loneobs/myApps/myVandal/cmake-build-default/CMakeFiles/rebuild_cache.dir
