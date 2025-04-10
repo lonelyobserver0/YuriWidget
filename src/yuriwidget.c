@@ -15,6 +15,11 @@
 #define SOCKET_PATH "/tmp/yuriwidget.sock"
 #define LOG_FILE "/tmp/yuriwidget.log"
 
+typedef struct {
+    GtkWidget *window;
+    char *title;
+} AppContext;
+
 static char *config_url = NULL;
 static char *window_title = "yuriwidget";
 static int win_width = 800;
@@ -35,19 +40,32 @@ static void apply_hyprland_window_settings(GtkWidget *window) {
     GdkWindow *gdk_window = gtk_widget_get_window(window);
     if (gdk_window) {
         GdkRGBA transparent = {0, 0, 0, 0};
-        gdk_window_set_background_rgba(gdk_window, &transparent);
+        gtk_widget_set_app_paintable(window, TRUE);
     }
+}
+
+static gboolean show_window(gpointer data) {
+    GtkWidget *window = (GtkWidget *)data;
+    gtk_widget_show_all(window);
+    return FALSE;
+}
+
+static gboolean hide_window(gpointer data) {
+    GtkWidget *window = (GtkWidget *)data;
+    gtk_widget_hide(window);
+    return FALSE;
 }
 
 static void *socket_server_thread(void *arg) {
     AppContext *context = (AppContext *)arg;
+
     int sockfd;
     struct sockaddr_un server_addr;
 
     sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (sockfd == -1) {
         log_message("Error creating socket");
-        return;
+        return NULL;
     }
 
     unlink(SOCKET_PATH);
@@ -59,13 +77,13 @@ static void *socket_server_thread(void *arg) {
     if (bind(sockfd, (struct sockaddr *)&server_addr, sizeof(struct sockaddr_un)) == -1) {
         log_message("Error binding socket");
         close(sockfd);
-        return;
+        return NULL;
     }
 
     if (listen(sockfd, 5) == -1) {
         log_message("Error listening on socket");
         close(sockfd);
-        return;
+        return NULL;
     }
 
     log_message("Server listening on socket...");
@@ -83,8 +101,8 @@ static void *socket_server_thread(void *arg) {
             buffer[len] = '\0';
             log_message(buffer);
 
-            if (strncmp(buffer, "show ", 5) == 0) {
-                const char *title = buffer + 5;
+            if (strncmp(buffer, "yuriwidget show ", 16) == 0) {
+                const char *title = buffer + 16;
                 log_message("Show window with title: ");
                 log_message(title);
 
@@ -92,8 +110,8 @@ static void *socket_server_thread(void *arg) {
                     g_idle_add(show_window, context->window);
                 }
 
-            } else if (strncmp(buffer, "hide ", 5) == 0) {
-                const char *title = buffer + 5;
+            } else if (strncmp(buffer, "yuriwidget hide ", 16) == 0) {
+                const char *title = buffer + 16;
                 log_message("Hide window with title: ");
                 log_message(title);
 
@@ -138,18 +156,6 @@ static void destroy(GtkWidget *window, gpointer data) {
     gtk_main_quit();
 }
 
-static gboolean show_window(gpointer data) {
-    GtkWidget *window = (GtkWidget *)data;
-    gtk_widget_show_all(window);
-    return FALSE;
-}
-
-static gboolean hide_window(gpointer data) {
-    GtkWidget *window = (GtkWidget *)data;
-    gtk_widget_hide(window);
-    return FALSE;
-}
-
 static void parse_args(int argc, char *argv[]) {
     static struct option long_options[] = {
         {"config-file", required_argument, 0, 'c'},
@@ -176,11 +182,6 @@ static void parse_args(int argc, char *argv[]) {
         }
     }
 }
-
-typedef struct {
-    GtkWidget *window;
-    char *title;
-} AppContext;
 
 int main(int argc, char *argv[]) {
     gtk_init(&argc, &argv);
