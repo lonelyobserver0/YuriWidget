@@ -1,0 +1,4 @@
+/home/loneobs/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/bin/cmake -DCMAKE_MAKE_PROGRAM=/home/loneobs/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja -G Ninja -S /home/loneobs/myApps/myVandal -B /home/loneobs/myApps/myVandal/cmake-build-default
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/loneobs/myApps/myVandal/cmake-build-default
