@@ -9,6 +9,8 @@
 #include <sys/un.h>
 #include <errno.h>
 #include <glib.h>
+#include <sys/stat.h>
+
 
 #define SOCKET_PATH "/tmp/yuriwidget.sock"
 
