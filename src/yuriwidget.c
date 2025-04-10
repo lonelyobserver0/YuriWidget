@@ -24,19 +24,28 @@ static void destroy(GtkWidget *widget, gpointer data) {
 }
 
 static void apply_hyprland_window_settings(GtkWidget *window) {
-    gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
-    gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
     gtk_widget_set_app_paintable(window, TRUE);
     gtk_widget_realize(window);
 
-    GdkWindow *gdk_window = gtk_widget_get_window(window);
-    if (gdk_window) {
-        GdkRGBA transparent = {0, 0, 0, 0};
-        gdk_window_set_background_rgba(gdk_window, &transparent);
-    }
+    // CSS per rendere lo sfondo trasparente
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(provider,
+        "* { background-color: rgba(0, 0, 0, 0); }",
+        -1, NULL);
 
+    GtkStyleContext *context = gtk_widget_get_style_context(window);
+    gtk_style_context_add_provider(context,
+        GTK_STYLE_PROVIDER(provider),
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+    g_object_unref(provider);
+
+    gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
+    gtk_window_set_skip_taskbar_hint(GTK_WINDOW(window), TRUE);
+    gtk_window_set_skip_pager_hint(GTK_WINDOW(window), TRUE);
     gtk_window_set_type_hint(GTK_WINDOW(window), GDK_WINDOW_TYPE_HINT_UTILITY);
 }
+
 
 static GtkWidget* create_yuriwidget_window(const char *title, const char *url) {
     GtkWidget *main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
