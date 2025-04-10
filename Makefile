@@ -1,29 +1,37 @@
-# Nome dell'eseguibile
-TARGET = yuriwidget
-
-# Directory dei sorgenti e di output
+CC = gcc
+CFLAGS = `pkg-config --cflags gtk+-3.0 webkit2gtk-4.0`
+LDFLAGS = `pkg-config --libs gtk+-3.0 webkit2gtk-4.0` -pthread
 SRC_DIR = src
 BUILD_DIR = build
+BIN_DIR = bin
+SRC_FILES = $(SRC_DIR)/yuriwidget.c
+OUT_FILE = $(BUILD_DIR)/yuriwidget
+LOG_FILE = ~/.cache/yuriwidget.log
+SOCKET_PATH = /tmp/yuriwidget.sock
 
-# File sorgente
-SRC = $(SRC_DIR)/yuriwidget.c
+all: $(OUT_FILE)
 
-# Flags per GTK+ 3 e WebKit2GTK
-CFLAGS = `pkg-config --cflags gtk+-3.0 webkit2gtk-4.0`
-LIBS = `pkg-config --libs gtk+-3.0 webkit2gtk-4.0` -pthread
+$(OUT_FILE): $(SRC_FILES)
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(SRC_FILES) -o $(OUT_FILE) $(LDFLAGS)
+	@echo "[yuriwidget] Build complete."
 
-# Comando di compilazione
-CC = gcc
+install:
+	@mkdir -p $(BIN_DIR)
+	cp $(OUT_FILE) $(BIN_DIR)/yuriwidget
+	@echo "[yuriwidget] Installed to $(BIN_DIR)/yuriwidget."
 
-# Regola principale
-all: $(BUILD_DIR)/$(TARGET)
+run: $(OUT_FILE)
+	$(OUT_FILE)
 
-$(BUILD_DIR)/$(TARGET): $(SRC)
-	mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(SRC) -o $(BUILD_DIR)/$(TARGET) $(LIBS)
-
-# Pulizia dei file compilati
 clean:
 	rm -rf $(BUILD_DIR)
+	rm -f $(BIN_DIR)/yuriwidget
+	rm -f $(SOCKET_PATH)
+	@echo "[yuriwidget] Cleaned up build and binaries."
 
-.PHONY: all clean
+log:
+	@echo "[yuriwidget] Checking logs in $(LOG_FILE)"
+	cat $(LOG_FILE)
+
+.PHONY: all install run clean log
