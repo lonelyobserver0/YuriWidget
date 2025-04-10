@@ -39,7 +39,8 @@ static void apply_hyprland_window_settings(GtkWidget *window) {
     }
 }
 
-static void socket_server_thread(void *arg) {
+static void *socket_server_thread(void *arg) {
+    AppContext *context = (AppContext *)arg;
     int sockfd;
     struct sockaddr_un server_addr;
 
@@ -86,11 +87,21 @@ static void socket_server_thread(void *arg) {
                 const char *title = buffer + 5;
                 log_message("Show window with title: ");
                 log_message(title);
+
+                if (strcmp(title, context->title) == 0) {
+                    g_idle_add(show_window, context->window);
+                }
+
             } else if (strncmp(buffer, "hide ", 5) == 0) {
                 const char *title = buffer + 5;
                 log_message("Hide window with title: ");
                 log_message(title);
+
+                if (strcmp(title, context->title) == 0) {
+                    g_idle_add(hide_window, context->window);
+                }
             }
+
         }
 
         close(client_fd);
@@ -127,6 +138,18 @@ static void destroy(GtkWidget *window, gpointer data) {
     gtk_main_quit();
 }
 
+static gboolean show_window(gpointer data) {
+    GtkWidget *window = (GtkWidget *)data;
+    gtk_widget_show_all(window);
+    return FALSE;
+}
+
+static gboolean hide_window(gpointer data) {
+    GtkWidget *window = (GtkWidget *)data;
+    gtk_widget_hide(window);
+    return FALSE;
+}
+
 static void parse_args(int argc, char *argv[]) {
     static struct option long_options[] = {
         {"config-file", required_argument, 0, 'c'},
@@ -154,14 +177,24 @@ static void parse_args(int argc, char *argv[]) {
     }
 }
 
+typedef struct {
+    GtkWidget *window;
+    char *title;
+} AppContext;
+
 int main(int argc, char *argv[]) {
     gtk_init(&argc, &argv);
     parse_args(argc, argv);
 
-    pthread_t socket_thread;
-    pthread_create(&socket_thread, NULL, (void *(*)(void *))socket_server_thread, NULL);
-
     GtkWidget *main_window = create_yuriwidget_window();
+
+    AppContext *context = g_malloc(sizeof(AppContext));
+    context->window = main_window;
+    context->title = window_title;
+
+    pthread_t socket_thread;
+    pthread_create(&socket_thread, NULL, socket_server_thread, context);
+
     apply_hyprland_window_settings(main_window);
 
     g_signal_connect(main_window, "destroy", G_CALLBACK(destroy), NULL);
