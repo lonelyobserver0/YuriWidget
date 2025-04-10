@@ -6,6 +6,8 @@
 #include <string.h>
 #include <unistd.h>
 
+// GTK-3
+
 #define WINDOW_INFO_FILE "/tmp/myVandal_windows.txt"
 
 static void destroy(GtkWidget *widget, gpointer data) {
