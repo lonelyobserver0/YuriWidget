@@ -6,19 +6,27 @@ Using GTK-3, is composed by a client (yuriwidget_client) and a server (yuriwidge
 The use of socket means that is it not boundend by OS, particular is the support for the infamous window compositor Hyprland.
 <br><br><br>
 ## Usage
-yuriwidget [options]
+`yuriwidget [options]`
 <br><br>
     Available options are:
 <br><br>
-    '--title'
+    `--title`
 <br><br>
-    '--config-file'
+    `--config-file`
 <br><br>
-    '--width'
+    `--width`
 <br><br>
-    '--height'
+    `--height`
 <br><br>
-    '--x'
+    `--x`
 <br><br>
-    '--y'
+    `--y`
 <br><br>
+| Option   | Description |<br><br>
+|--------|-------------|<br><br>
+| `--title`         | 30  |<br><br>
+| `--config-file`   | 25  |<br><br>
+| `--width`         | 28  |<br><br>
+| `--height`        | 30  |<br><br>
+| `--x`             | 25  |<br><br>
+| `--y`             | 28  |<br><br>
