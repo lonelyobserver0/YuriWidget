@@ -1,32 +1,36 @@
 # YuriWidget
-A widget engine that render HTML, CSS and JavaScript.
 
-Using GTK-3, is composed by a client (yuriwidget_client) and a server (yuriwidget), this way user has the possibility of run command that change app status in real-time.
+A widget engine that renders HTML, CSS, and JavaScript.
 
-The use of socket means that is it not boundend by OS, particular is the support for the infamous window compositor Hyprland.
-<br><br><br>
+Using GTK-3, it is composed of a client (`yuriwidget_client`) and a server (`yuriwidget`), allowing the user to run commands that change the app status in real-time.
+
+The use of sockets means that it is not bound by the OS, particularly supporting the infamous window compositor Hyprland.
+
+---
+## Installation
+
+### Dependencies
+
+WIP
+
+### Installation
+
+- Clone this repo
+- Move to the repo folder
+- Use command `make`
+- Use command `make install`
+- Use command `make clean` (optional)
+---
+
 ## Usage
-`yuriwidget [options]`
-<br><br>
-    Available options are:
-<br><br>
-    `--title`
-<br><br>
-    `--config-file`
-<br><br>
-    `--width`
-<br><br>
-    `--height`
-<br><br>
-    `--x`
-<br><br>
-    `--y`
-<br><br>
-| Option   | Description |<br><br>
-|--------|-------------|<br><br>
-| `--title`         | 30  |<br><br>
-| `--config-file`   | 25  |<br><br>
-| `--width`         | 28  |<br><br>
-| `--height`        | 30  |<br><br>
-| `--x`             | 25  |<br><br>
-| `--y`             | 28  |<br><br>
+
+yuriwidget [options]
+
+| Option          | Description                                                                 |
+|-----------------|-----------------------------------------------------------------------------|
+| `--title`       | Window title, it will be used by any other system to as ID                  |
+| `--config-file` | Path to your html file to show                                              |
+| `--width`       | If using a windows compositor like Hyprland, this value will be overwritten |
+| `--height`      | If using a windows compositor like Hyprland, this value will be overwritten |
+| `--x`           | If using a windows compositor like Hyprland, this value will be overwritten |
+| `--y`           | If using a windows compositor like Hyprland, this value will be overwritten |
