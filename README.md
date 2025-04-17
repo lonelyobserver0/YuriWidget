@@ -29,7 +29,7 @@ yuriwidget [options]
 | Option          | Description                                                                 |
 |-----------------|-----------------------------------------------------------------------------|
 | `--title`       | Window title, it will be used by any other system to as ID                  |
-| `--config-file` | Path to your html file to show                                              |
+| `--config-file` | Path to your html file to show or remote URL                                              |
 | `--width`       | If using a windows compositor like Hyprland, this value will be overwritten |
 | `--height`      | If using a windows compositor like Hyprland, this value will be overwritten |
 | `--x`           | If using a windows compositor like Hyprland, this value will be overwritten |
