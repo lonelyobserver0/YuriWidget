@@ -5,4 +5,4 @@
 
 void *start_server_thread(void *arg);
 
-#endif
+#endif // SERVER_H
