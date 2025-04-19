@@ -39,12 +39,13 @@ Commands:
 
 ### Manage widgets
 
-`yuriwidget_client [command]`
+`yuriwidgetctl [command]`
 
-| Command               | Description                                                                                        |
-|-----------------------|----------------------------------------------------------------------------------------------------|
-| `hide <window-title>` | Make the widget whose window has title <window-title> invisible by view, selection and inputs      |
-| `show <window-title>` | Make the hidden widget whose window has title <window-title> visible by view, selection and inputs |
+| Command                   | Description                                                                                        |
+|---------------------------|----------------------------------------------------------------------------------------------------|
+| `hide <window-title>`     | Make the widget whose window has title <window-title> invisible by view, selection and inputs      |
+| `show <window-title>`     | Make the hidden widget whose window has title <window-title> visible by view, selection and inputs |
+| `reload <window-title>`   | Re-create the widget whose window has title <window-title>                                         |
 
 ## Little advice
 

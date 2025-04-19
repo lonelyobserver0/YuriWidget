@@ -1,27 +1,33 @@
+// === File: src/main.c ===
 #include <gtk/gtk.h>
-#include "args.h"
+#include <pthread.h>
+#include "config.h"
 #include "window.h"
-#include "socket_server.h"
-#include "log.h"
+#include "server.h"
 
 int main(int argc, char *argv[]) {
     gtk_init(&argc, &argv);
 
-    parse_args(argc, argv);
+    if (argc < 2) {
+        g_printerr("Usage: %s config.json\n", argv[0]);
+        return 1;
+    }
 
-    GtkWidget *main_window = create_yuriwidget_window();
-    AppContext *context = init_app_context(main_window, window_title);
+    YuriConfig *cfg = load_config_from_file(argv[1]);
+    if (!cfg) {
+        g_printerr("Failed to load config.\n");
+        return 1;
+    }
 
-    pthread_t socket_thread;
-    pthread_create(&socket_thread, NULL, socket_server_thread, context);
+    AppContext *ctx = create_app_context(cfg);
+    g_signal_connect(ctx->window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
-    apply_hyprland_window_settings(main_window);
+    pthread_t thread;
+    pthread_create(&thread, NULL, start_socket_server, ctx);
 
-    g_signal_connect(main_window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     gtk_main();
 
-    unlink(SOCKET_PATH);
-    pthread_join(socket_thread, NULL);
-
+    pthread_join(thread, NULL);
+    destroy_app(ctx);
     return 0;
 }
