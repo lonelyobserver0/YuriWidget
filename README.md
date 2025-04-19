@@ -7,9 +7,8 @@ Using GTK-4, it is composed of a client (`yuriwidget_client`) and a server (`yur
 The use of sockets means that it is not bound by the OS, particularly supporting the infamous window compositor
 Hyprland.
 
----
-## Installation
 
+## Installation
 ### Dependencies
 
 WIP
@@ -21,11 +20,12 @@ WIP
 - Use command `make`
 - Use command `make install`
 - Use command `make clean` (optional)
----
+
 
 ## Usage
 ### Create a widget
 Commands:
+
 `yuriwidget [options]`
 
 | Option          | Description                                                                 |
@@ -38,3 +38,15 @@ Commands:
 | `--y`           | If the window is not set like floating, this value will be overwritten      |
 
 ### Manage widgets
+
+`yuriwidget_client [command]`
+
+| Command               | Description                                                                                        |
+|-----------------------|----------------------------------------------------------------------------------------------------|
+| `hide <window-title>` | Make the widget whose window has title <window-title> invisible by view, selection and inputs      |
+| `show <window-title>` | Make the hidden widget whose window has title <window-title> visible by view, selection and inputs |
+
+## Little advice
+
+Every widget is an instance of yuriwidget software and has his own PID, `pgrep yuriwidget` show every one of theme.
+If you want to kill only one widget, use `kill <PID>`
