@@ -1,4 +1,3 @@
-// === File: include/window.h ===
 #ifndef WINDOW_H
 #define WINDOW_H
 
@@ -9,13 +8,13 @@
 typedef struct {
     GtkWidget *window;
     WebKitWebView *webview;
-    YuriConfig *config;
+    char *title;
+    Config *config;
 } AppContext;
 
-AppContext *create_app_context(YuriConfig *config);
+AppContext *create_app_context(Config *cfg);
 void destroy_app(AppContext *ctx);
 void reload_webview(AppContext *ctx);
 void execute_js(AppContext *ctx, const char *js);
-void apply_transparency(GtkWidget *window);
 
 #endif

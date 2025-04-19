@@ -45,3 +45,10 @@ Config *config_load_from_file(const char *filename) {
     g_object_unref(parser);
     return config;
 }
+
+void free_config(Config *cfg) {
+    if (!cfg) return;
+    g_free(cfg->title);
+    g_free(cfg->url);
+    g_free(cfg);
+}
