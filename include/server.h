@@ -3,6 +3,6 @@
 
 #include "window.h"
 
-void *start_server_thread(void *arg);
+void *start_socket_server(void *data);
 
-#endif // SERVER_H
+#endif

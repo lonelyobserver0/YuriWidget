@@ -12,6 +12,6 @@ typedef struct {
 } Config;
 
 Config *config_load_from_file(const char *filename);
-void free_config(Config *config);
+void free_config(Config *cfg);
 
-#endif // CONFIG_H
+#endif
