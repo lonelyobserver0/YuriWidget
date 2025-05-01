@@ -5,7 +5,7 @@ LDFLAGS = `pkg-config --libs gtk+-3.0 webkit2gtk-4.0 json-glib-1.0` -pthread
 INCLUDES = -Iinclude
 
 CLIENT_SRC = src/client/yuriwidget_client.c
-CLIENT_BIN = yuriwidget-client
+CLIENT_BIN = build/yuriwidget-client
 
 SERVER_SRC = \
     src/server/main.c \
@@ -13,7 +13,7 @@ SERVER_SRC = \
     src/server/config.c \
     src/server/socket_server.c
 
-SERVER_BIN = yuriwidget
+SERVER_BIN = build/yuriwidget
 
 .PHONY: all clean
 
