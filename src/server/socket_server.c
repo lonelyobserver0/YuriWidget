@@ -1,67 +1,41 @@
-#include "socket_server.h"
-#include "log.h"
+#include "server/socket_server.h"
+#include "server/window.h"
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
 #include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
 
-static gboolean show_cb(gpointer data) {
-    gtk_widget_show_all((GtkWidget *)data);
-    return FALSE;
-}
+#define SOCKET_PATH "/tmp/yuriwidget.sock"
 
-static gboolean hide_cb(gpointer data) {
-    gtk_widget_hide((GtkWidget *)data);
-    return FALSE;
-}
-
-void *socket_server_thread(void *arg) {
-    AppContext *context = (AppContext *)arg;
-
-    int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (sockfd == -1) {
-        log_message("Socket creation failed.");
-        return NULL;
-    }
+void *start_socket_server(void *data) {
+    AppContext *ctx = (AppContext *)data;
+    int server_sock = socket(AF_UNIX, SOCK_STREAM, 0);
+    struct sockaddr_un addr;
 
     unlink(SOCKET_PATH);
 
-    struct sockaddr_un addr = {0};
+    memset(&addr, 0, sizeof(addr));
     addr.sun_family = AF_UNIX;
     strncpy(addr.sun_path, SOCKET_PATH, sizeof(addr.sun_path) - 1);
 
-    if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)) == -1 ||
-        listen(sockfd, 5) == -1) {
-        log_message("Socket bind/listen failed.");
-        close(sockfd);
-        return NULL;
-    }
+    bind(server_sock, (struct sockaddr *)&addr, sizeof(addr));
+    listen(server_sock, 5);
 
-    log_message("Listening on socket...");
-
+    char buf[256];
     while (1) {
-        int client = accept(sockfd, NULL, NULL);
-        if (client < 0) continue;
+        int client = accept(server_sock, NULL, NULL);
+        int len = read(client, buf, sizeof(buf) - 1);
+        buf[len] = '\0';
 
-        char buf[256];
-        ssize_t len = read(client, buf, sizeof(buf) - 1);
-        if (len > 0) {
-            buf[len] = '\0';
-
-            if (strncmp(buf, "yuriwidget show ", 16) == 0) {
-                if (strcmp(buf + 16, context->title) == 0)
-                    g_idle_add(show_cb, context->window);
-            } else if (strncmp(buf, "yuriwidget hide ", 16) == 0) {
-                if (strcmp(buf + 16, context->title) == 0)
-                    g_idle_add(hide_cb, context->window);
-            }
+        if (strstr(buf, "show") == buf) {
+            show_window(ctx);
+        } else if (strstr(buf, "hide") == buf) {
+            hide_window(ctx);
         }
 
         close(client);
     }
 
-    close(sockfd);
+    close(server_sock);
     return NULL;
 }

@@ -1,19 +1,29 @@
 CC = gcc
-CFLAGS = -Wall -g -Iinclude `pkg-config --cflags gtk+-3.0 webkit2gtk-4.0 json-glib-1.0`
+CFLAGS = -Wall -g `pkg-config --cflags gtk+-3.0 webkit2gtk-4.0 json-glib-1.0`
 LDFLAGS = `pkg-config --libs gtk+-3.0 webkit2gtk-4.0 json-glib-1.0` -pthread
-SRC = src/main.c src/config.c src/window.c src/server.c
-OBJ = $(SRC:.c=.o)
-TARGET = yuriwidget
 
-all: $(TARGET)
+INCLUDES = -Iinclude
 
-$(TARGET): $(OBJ)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+CLIENT_SRC = src/client/yuriwidget_client.c
+CLIENT_BIN = yuriwidget-client
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+SERVER_SRC = \
+    src/server/main.c \
+    src/server/window.c \
+    src/server/config.c \
+    src/server/socket_server.c
 
-clean:
-	rm -f $(OBJ) $(TARGET)
+SERVER_BIN = yuriwidget
 
 .PHONY: all clean
+
+all: $(CLIENT_BIN) $(SERVER_BIN)
+
+$(CLIENT_BIN): $(CLIENT_SRC)
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^
+
+$(SERVER_BIN): $(SERVER_SRC)
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^ $(LDFLAGS)
+
+clean:
+	rm -f $(CLIENT_BIN) $(SERVER_BIN)

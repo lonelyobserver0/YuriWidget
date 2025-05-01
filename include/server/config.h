@@ -1,5 +1,4 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#pragma once
 
 typedef struct {
     char *title;
@@ -12,6 +11,3 @@ typedef struct {
 } Config;
 
 Config *config_load_from_file(const char *filename);
-void free_config(Config *cfg);
-
-#endif
