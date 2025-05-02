@@ -26,20 +26,36 @@ WIP
 ### Create a widget
 Commands:
 
-`yuriwidget [options]`
+`yuriwidget [path to configuration file (config.json)]`
 
-| Option          | Description                                                                 |
-|-----------------|-----------------------------------------------------------------------------|
-| `--title`       | Window title, it will be used by any other system to as ID                  |
-| `--config-file` | Path to your html file to show or remote URL                                |
-| `--width`       | If the window is not set like floating, this value will be overwritten      |
-| `--height`      | If the window is not set like floating, this value will be overwritten      |
-| `--x`           | If the window is not set like floating, this value will be overwritten      |
-| `--y`           | If the window is not set like floating, this value will be overwritten      |
+### Configuration file
+
+<pre> ```json
+{
+  "title": "[widget-title]",
+  "url": "[path-to-html-file]",
+  "width": [window-width],
+  "height": [window-height],
+  "x": [window-x-position],
+  "y": [window-y-position],
+  "transparent": [transparent-bool]
+}
+
+``` </pre>
+
+| Option                | Data type | Description                                                               |
+|-----------------------|-----------|---------------------------------------------------------------------------|
+| `widget-title`        | String    | Window title, it will be used by any other system to as ID                |
+| `path-to-html-file`   | String    | Path to your html file to show or remote URL                              |
+| `window-width`        | Integer   | If the window is not set like floating, this value will be overwritten    |
+| `window-height`       | Integer   | If the window is not set like floating, this value will be overwritten    |
+| `window-x-position`   | Integer   | If the window is not set like floating, this value will be overwritten    |
+| `window-y-position`   | Integer   | If the window is not set like floating, this value will be overwritten    |
+| `transparent-bool`    | Boolean   | If use the opacity value of your WM or your DE                            |
 
 ### Manage widgets
 
-`yuriwidgetctl [command]`
+`yuriwidget_client [command]`
 
 | Command                   | Description                                                                                        |
 |---------------------------|----------------------------------------------------------------------------------------------------|
