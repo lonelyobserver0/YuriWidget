@@ -31,7 +31,7 @@ Commands:
 
 `yuriwidget [path to configuration file (config.json)]`
 
-<hr style="width: 50%; margin-left: 0;">
+────────────────────────
 
 
 ### Configuration file
@@ -61,7 +61,7 @@ This file is to be saved in ~/.config/yuriwidget/ with the main html, css and js
 | `window-y-position`   | Integer   | If the window is not set like floating, this value will be overwritten    |
 | `transparent-bool`    | Boolean   | If use the opacity value of your WM or your DE                            |
 
-<hr style="width: 50%; margin-left: 0;">
+────────────────────────
 
 ### Manage widgets
 
