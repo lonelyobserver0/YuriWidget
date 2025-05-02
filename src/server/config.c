@@ -22,7 +22,8 @@ Config *config_load_from_file(const char *filename) {
     const char *url = json_object_get_string_member(obj, "url");
     if (g_str_has_prefix(url, "file:")) {
         char *dir = g_path_get_dirname(filename);
-        char *rel = g_build_filename(dir, url + 5, NULL);
+        //char *rel = g_build_filename(dir, url + 5, NULL);
+        char *rel = g_build_filename(g_get_user_config_dir(), "yuriwidget", url + 5, NULL);
         cfg->url = g_strdup_printf("file://%s", rel);
         g_free(rel);
         g_free(dir);
