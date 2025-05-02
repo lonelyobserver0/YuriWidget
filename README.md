@@ -8,12 +8,12 @@ The use of sockets means that it is not bound by the OS, particularly supporting
 Hyprland.
 
 
-## Installation
-### Dependencies
+## -->Installation
+### ---->Dependencies
 
-WIP
+webkit2gtk
 
-### Installation
+### ---->Installation
 
 - Clone this repo
 - Move to the repo folder
@@ -22,15 +22,15 @@ WIP
 - Use command `make clean` (optional)
 
 
-## Usage
-### Create a widget
+## -->Usage
+### ---->Create a widget
 Commands:
 
 `yuriwidget [path to configuration file (config.json)]`
 
 ---
 
-### Configuration file
+### ---->Configuration file
 
 This file is to be saved in ~/.config/yuriwidget/ with the main html, css and js files too, if they exists.
 
@@ -59,7 +59,7 @@ This file is to be saved in ~/.config/yuriwidget/ with the main html, css and js
 
 ---
 
-### Manage widgets
+### ---->Manage widgets
 
 `yuriwidget_client [command]`
 
@@ -69,7 +69,7 @@ This file is to be saved in ~/.config/yuriwidget/ with the main html, css and js
 | `show <window-title>`     | Make the hidden widget whose window has title <window-title> visible by view, selection and inputs |
 | `reload <window-title>`   | Re-create the widget whose window has title <window-title>                                         |
 
-## Little advices
+## -->Little advices
 
 Every widget is an instance of yuriwidget software and has his own PID, `pgrep yuriwidget` show every one of theme.
 If you want to kill only one widget, use `kill <PID>`. Alternatively use your system method to kill the window with the right title-name.
