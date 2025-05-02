@@ -27,3 +27,11 @@ $(SERVER_BIN): $(SERVER_SRC)
 
 clean:
 	rm -f $(CLIENT_BIN) $(SERVER_BIN)
+
+
+PREFIX ?= /usr/local
+
+install: all
+	install -d $(PREFIX)/bin
+	install -m 755 $(CLIENT_BIN) $(PREFIX)/bin/
+	install -m 755 $(SERVER_BIN) $(PREFIX)/bin/
