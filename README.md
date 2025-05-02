@@ -28,6 +28,8 @@ Commands:
 
 `yuriwidget [path to configuration file (config.json)]`
 
+---
+
 ### Configuration file
 
 This file is to be saved in ~/.config/yuriwidget/ with the main html, css and js files too, if they exists.
@@ -55,6 +57,8 @@ This file is to be saved in ~/.config/yuriwidget/ with the main html, css and js
 | `window-y-position`   | Integer   | If the window is not set like floating, this value will be overwritten    |
 | `transparent-bool`    | Boolean   | If use the opacity value of your WM or your DE                            |
 
+---
+
 ### Manage widgets
 
 `yuriwidget_client [command]`
@@ -65,7 +69,7 @@ This file is to be saved in ~/.config/yuriwidget/ with the main html, css and js
 | `show <window-title>`     | Make the hidden widget whose window has title <window-title> visible by view, selection and inputs |
 | `reload <window-title>`   | Re-create the widget whose window has title <window-title>                                         |
 
-## Little advice
+## Little advices
 
 Every widget is an instance of yuriwidget software and has his own PID, `pgrep yuriwidget` show every one of theme.
-If you want to kill only one widget, use `kill <PID>`
+If you want to kill only one widget, use `kill <PID>`. Alternatively use your system method to kill the window with the right title-name.
