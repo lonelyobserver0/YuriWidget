@@ -30,6 +30,8 @@ Commands:
 
 ### Configuration file
 
+This file is to be saved in ~/.config/yuriwidget/ with the main html, css and js files too, if they exists.
+
 <pre> ```json
 {
   "title": "[widget-title]",
