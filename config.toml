@@ -1,10 +1,6 @@
 [widget]
-label = "Note Rapide"
-button_text = "Chiudi"
-position_type = "preset"
-position = "top-right"
-always_on_top = true
-transparent = true
-
-[action]
-command = "notify-send 'Hai cliccato il widget!'"
+label = "Ciao da YuriWidget!"
+x = 300
+y = 200
+always_on_top = 1
+transparent = 0

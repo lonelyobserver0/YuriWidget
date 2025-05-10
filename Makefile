@@ -1,33 +1,41 @@
 APP_NAME = yuriwidget
-SRC = yuriwidget.c deps/tomlc99/toml.c
-DEPS_DIR = deps
-TOMLC99_DIR = $(DEPS_DIR)/tomlc99
+SRC = yuriwidget.c
+TOML_DIR = deps/tomlc99
+TOML_REPO = https://raw.githubusercontent.com/cktan/tomlc99/master
+TOML_FILES = toml.h toml.c
 
-CFLAGS = -I$(TOMLC99_DIR)
-LDLIBS = `pkg-config --cflags --libs gtk4`
+CFLAGS = `pkg-config --cflags gtk4` -I$(TOML_DIR)
+LDFLAGS = `pkg-config --libs gtk4`
+OBJ = $(SRC:.c=.o)
 
-.PHONY: all run clean deps check_deps install_deps
+all: check-deps toml $(APP_NAME)
 
-all: check_deps deps $(APP_NAME)
+$(APP_NAME): $(OBJ) $(TOML_DIR)/toml.c
+	$(CC) -o $@ $(OBJ) $(TOML_DIR)/toml.c $(CFLAGS) $(LDFLAGS)
 
-$(APP_NAME): $(SRC)
-	$(CC) $(SRC) -o $@ $(CFLAGS) $(LDLIBS)
+%.o: %.c
+	$(CC) -c $< $(CFLAGS)
 
-deps:
-	@if [ ! -d "$(TOMLC99_DIR)" ]; then \
-		echo "Cloning tomlc99..."; \
-		mkdir -p $(DEPS_DIR); \
-		git clone https://github.com/cktan/tomlc99.git $(TOMLC99_DIR); \
-	else \
-		echo "tomlc99 already present."; \
-	fi
+.PHONY: toml
+toml:
+	@mkdir -p $(TOML_DIR)
+	@for file in $(TOML_FILES); do \
+		if [ ! -f "$(TOML_DIR)/$$file" ]; then \
+			echo "Scarico $$file..."; \
+			curl -sSfL "$(TOML_REPO)/$$file" -o "$(TOML_DIR)/$$file"; \
+		fi \
+	done
 
-check_deps:
-	@command -v pkg-config >/dev/null 2>&1 || { echo "pkg-config not found. Installing..."; sudo pacman -S --noconfirm pkgconf; }
-	@pkg-config --exists gtk4 || { echo "gtk4 not found. Installing..."; sudo pacman -S --noconfirm gtk4; }
+.PHONY: check-deps
+check-deps:
+	@command -v pkg-config >/dev/null || { echo "Errore: pkg-config mancante."; exit 1; }
+	@pkg-config --exists gtk4 || { \
+		echo "Errore: GTK 4 non trovato."; \
+		echo "Su Arch Linux puoi installarlo con: sudo pacman -S gtk4"; \
+		exit 1; \
+	}
+	@command -v curl >/dev/null || { echo "Errore: curl mancante (necessario per scaricare tomlc99)."; exit 1; }
 
-run: all
-	./$(APP_NAME) --config-file config.toml
-
+.PHONY: clean
 clean:
-	rm -f $(APP_NAME)
+	rm -f $(APP_NAME) $(OBJ)

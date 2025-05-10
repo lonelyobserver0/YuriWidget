@@ -1,176 +1,92 @@
-// yuriwidget.c
 #include <gtk/gtk.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <gdk/gdk.h>
-#include "toml.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include "deps/tomlc99/toml.h"
 
-char label_text[256] = "Default Label";
-char button_text[256] = "Click Me";
-char command[256] = "";
+static GtkWidget *window;
+static GtkWidget *label;
+static int pos_x = 100, pos_y = 100;
+static gboolean always_on_top = FALSE;
+static gboolean transparent = FALSE;
 
-enum PositionMode { POS_ABSOLUTE, POS_PRESET };
-enum PositionMode position_mode = POS_PRESET;
-int pos_x = -1, pos_y = -1;
-char preset[64] = "top-left";
-
-gboolean always_on_top = FALSE;
-gboolean transparent = FALSE;
-
-void on_button_clicked(GtkButton *button, gpointer user_data) {
-    if (strlen(command) > 0) {
-        system(command);
-    }
-}
-
-void load_config(const char* filename) {
-    FILE* fp = fopen(filename, "r");
+int load_config(const char *config_path, char *label_text, size_t label_size, int *x, int *y, gboolean *always_on_top, gboolean *transparent) {
+    FILE *fp = fopen(config_path, "r");
     if (!fp) {
-        fprintf(stderr, "Errore: impossibile aprire %s\n", filename);
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "Impossibile aprire il file di configurazione: %s\n", config_path);
+        return -1;
     }
 
     char errbuf[200];
-    toml_table_t* conf = toml_parse_file(fp, errbuf, sizeof(errbuf));
+    toml_table_t *conf = toml_parse_file(fp, errbuf, sizeof(errbuf));
     fclose(fp);
+
     if (!conf) {
         fprintf(stderr, "Errore nel parsing del file TOML: %s\n", errbuf);
-        exit(EXIT_FAILURE);
+        return -1;
     }
 
-    toml_table_t* widget = toml_table_in(conf, "widget");
-    if (widget) {
-        toml_rtostr(toml_raw_in(widget, "label"), label_text, sizeof(label_text));
-        toml_rtostr(toml_raw_in(widget, "button_text"), button_text, sizeof(button_text));
-
-        char pos_type[64];
-        if (toml_rtostr(toml_raw_in(widget, "position_type"), pos_type, sizeof(pos_type)) == 0) {
-            if (strcmp(pos_type, "absolute") == 0) {
-                position_mode = POS_ABSOLUTE;
-                toml_rtoi(toml_raw_in(widget, "x"), &pos_x);
-                toml_rtoi(toml_raw_in(widget, "y"), &pos_y);
-            } else if (strcmp(pos_type, "preset") == 0) {
-                toml_rtostr(toml_raw_in(widget, "position"), preset, sizeof(preset));
-                position_mode = POS_PRESET;
-            }
-        }
-
-        int tmp_bool;
-        if (toml_rtoi(toml_raw_in(widget, "always_on_top"), &tmp_bool) == 0)
-            always_on_top = tmp_bool;
-        if (toml_rtoi(toml_raw_in(widget, "transparent"), &tmp_bool) == 0)
-            transparent = tmp_bool;
+    toml_table_t *widget = toml_table_in(conf, "widget");
+    if (!widget) {
+        fprintf(stderr, "Nessuna sezione [widget] nel file TOML\n");
+        toml_free(conf);
+        return -1;
     }
 
-    toml_table_t* action = toml_table_in(conf, "action");
-    if (action) {
-        toml_rtostr(toml_raw_in(action, "command"), command, sizeof(command));
+    const char *label_raw = toml_raw_in(widget, "label");
+    if (label_raw && toml_rtostr(label_raw, label_text, label_size) != 0) {
+        fprintf(stderr, "Errore nella lettura di 'label'\n");
+        toml_free(conf);
+        return -1;
     }
+
+    int64_t x_val, y_val;
+    if (toml_rtoi(toml_raw_in(widget, "x"), &x_val) == 0)
+        *x = (int)x_val;
+    if (toml_rtoi(toml_raw_in(widget, "y"), &y_val) == 0)
+        *y = (int)y_val;
+
+    int64_t atop_val, transp_val;
+    if (toml_rtoi(toml_raw_in(widget, "always_on_top"), &atop_val) == 0)
+        *always_on_top = atop_val ? TRUE : FALSE;
+    if (toml_rtoi(toml_raw_in(widget, "transparent"), &transp_val) == 0)
+        *transparent = transp_val ? TRUE : FALSE;
 
     toml_free(conf);
+    return 0;
 }
 
-void apply_position(GtkWindow *window) {
-    GdkDisplay *display = gdk_display_get_default();
-    GdkMonitor *monitor = gdk_display_get_primary_monitor(display);
-    if (!monitor) return;
-
-    GdkRectangle geometry;
-    gdk_monitor_get_geometry(monitor, &geometry);
-
-    int win_w = 300, win_h = 100;
-    int x = 0, y = 0;
-
-    if (position_mode == POS_ABSOLUTE) {
-        x = pos_x;
-        y = pos_y;
-    } else if (position_mode == POS_PRESET) {
-        if (strcmp(preset, "top-left") == 0) {
-            x = geometry.x + 0;
-            y = geometry.y + 0;
-        } else if (strcmp(preset, "top-right") == 0) {
-            x = geometry.x + geometry.width - win_w;
-            y = geometry.y + 0;
-        } else if (strcmp(preset, "bottom-left") == 0) {
-            x = geometry.x + 0;
-            y = geometry.y + geometry.height - win_h;
-        } else if (strcmp(preset, "bottom-right") == 0) {
-            x = geometry.x + geometry.width - win_w;
-            y = geometry.y + geometry.height - win_h;
-        } else if (strcmp(preset, "center-left") == 0) {
-            x = geometry.x + 0;
-            y = geometry.y + (geometry.height - win_h) / 2;
-        } else if (strcmp(preset, "center-right") == 0) {
-            x = geometry.x + geometry.width - win_w;
-            y = geometry.y + (geometry.height - win_h) / 2;
-        } else if (strcmp(preset, "center") == 0) {
-            x = geometry.x + (geometry.width - win_w) / 2;
-            y = geometry.y + (geometry.height - win_h) / 2;
-        }
-    }
-
-    gtk_window_move(window, x, y);
+void apply_position(GtkWindow *win, int x, int y) {
+    gtk_window_move(win, x, y);
 }
 
-int main(int argc, char *argv[]) {
-    const char *config_path = NULL;
+static void activate(GtkApplication *app, gpointer user_data) {
+    char label_text[256] = "Default text";
+    load_config("config.toml", label_text, sizeof(label_text), &pos_x, &pos_y, &always_on_top, &transparent);
 
-    for (int i = 1; i < argc - 1; i++) {
-        if (strcmp(argv[i], "--config-file") == 0) {
-            config_path = argv[i + 1];
-            break;
-        }
-    }
-
-    if (!config_path) {
-        fprintf(stderr, "Uso: %s --config-file <percorso_config.toml>\n", argv[0]);
-        return EXIT_FAILURE;
-    }
-
-    gtk_init();
-
-    load_config(config_path);
-
-    GtkCssProvider *provider = gtk_css_provider_new();
-    gtk_css_provider_load_from_path(provider, "style.css");
-    gtk_style_context_add_provider_for_display(gdk_display_get_default(),
-        GTK_STYLE_PROVIDER(provider),
-        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-
-    GtkWidget *window = gtk_window_new();
-    gtk_window_set_title(GTK_WINDOW(window), "yuriwidget");
-    gtk_window_set_default_size(GTK_WINDOW(window), 300, 100);
+    window = gtk_application_window_new(app);
+    gtk_window_set_title(GTK_WINDOW(window), "YuriWidget");
+    gtk_window_set_default_size(GTK_WINDOW(window), 200, 100);
+    apply_position(GTK_WINDOW(window), pos_x, pos_y);
 
     if (always_on_top)
         gtk_window_set_keep_above(GTK_WINDOW(window), TRUE);
 
-    if (transparent) {
-        gtk_widget_set_app_paintable(window, TRUE);
-        gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
-        gtk_widget_set_name(window, "transparent");
-        GdkSurface *surface = gtk_native_get_surface(gtk_widget_get_native(window));
-        gdk_surface_set_opaque_region(surface, NULL);
-    }
+    label = gtk_label_new(label_text);
+    gtk_window_set_child(GTK_WINDOW(window), label);
 
-    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-    gtk_widget_set_margin_top(box, 20);
-    gtk_widget_set_margin_bottom(box, 20);
-    gtk_widget_set_margin_start(box, 20);
-    gtk_widget_set_margin_end(box, 20);
-    gtk_window_set_child(GTK_WINDOW(window), box);
+    gtk_window_present(GTK_WINDOW(window));
+}
 
-    GtkWidget *label = gtk_label_new(label_text);
-    gtk_box_append(GTK_BOX(box), label);
+int main(int argc, char **argv) {
+    GtkApplication *app;
+    int status;
 
-    GtkWidget *button = gtk_button_new_with_label(button_text);
-    gtk_box_append(GTK_BOX(box), button);
-    g_signal_connect(button, "clicked", G_CALLBACK(on_button_clicked), NULL);
+    app = gtk_application_new("org.example.yuriwidget", G_APPLICATION_FLAGS_NONE);
+    g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
+    status = g_application_run(G_APPLICATION(app), argc, argv);
+    g_object_unref(app);
 
-    apply_position(GTK_WINDOW(window));
-
-    gtk_widget_show(window);
-    gtk_main();
-
-    return 0;
+    return status;
 }
