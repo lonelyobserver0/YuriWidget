@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./yuriwidget --config-file ./config.toml
+./yuriwidget --config-file config.toml

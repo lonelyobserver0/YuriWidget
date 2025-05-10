@@ -1,3 +1,4 @@
+// yuriwidget.c
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +14,9 @@ enum PositionMode { POS_ABSOLUTE, POS_PRESET };
 enum PositionMode position_mode = POS_PRESET;
 int pos_x = -1, pos_y = -1;
 char preset[64] = "top-left";
+
+gboolean always_on_top = FALSE;
+gboolean transparent = FALSE;
 
 void on_button_clicked(GtkButton *button, gpointer user_data) {
     if (strlen(command) > 0) {
@@ -51,6 +55,12 @@ void load_config(const char* filename) {
                 position_mode = POS_PRESET;
             }
         }
+
+        int tmp_bool;
+        if (toml_rtoi(toml_raw_in(widget, "always_on_top"), &tmp_bool) == 0)
+            always_on_top = tmp_bool;
+        if (toml_rtoi(toml_raw_in(widget, "transparent"), &tmp_bool) == 0)
+            transparent = tmp_bool;
     }
 
     toml_table_t* action = toml_table_in(conf, "action");
@@ -122,9 +132,26 @@ int main(int argc, char *argv[]) {
 
     load_config(config_path);
 
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_path(provider, "style.css");
+    gtk_style_context_add_provider_for_display(gdk_display_get_default(),
+        GTK_STYLE_PROVIDER(provider),
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
     GtkWidget *window = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(window), "yuriwidget");
     gtk_window_set_default_size(GTK_WINDOW(window), 300, 100);
+
+    if (always_on_top)
+        gtk_window_set_keep_above(GTK_WINDOW(window), TRUE);
+
+    if (transparent) {
+        gtk_widget_set_app_paintable(window, TRUE);
+        gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
+        gtk_widget_set_name(window, "transparent");
+        GdkSurface *surface = gtk_native_get_surface(gtk_widget_get_native(window));
+        gdk_surface_set_opaque_region(surface, NULL);
+    }
 
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
     gtk_widget_set_margin_top(box, 20);

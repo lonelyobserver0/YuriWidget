@@ -1,9 +1,10 @@
 [widget]
-label = "Shutdown"
-button_text = "Spegni"
+label = "Note Rapide"
+button_text = "Chiudi"
 position_type = "preset"
 position = "top-right"
-
+always_on_top = true
+transparent = true
 
 [action]
-command = "systemctl poweroff"
+command = "notify-send 'Hai cliccato il widget!'"
