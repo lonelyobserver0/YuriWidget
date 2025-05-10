@@ -1,41 +1,23 @@
-APP_NAME = yuriwidget
+CC = cc
+CFLAGS = -Ideps/tomlc99 `pkg-config --cflags gtk4 gtk-layer-shell`
+LDLIBS = `pkg-config --libs gtk4 gtk-layer-shell`
 SRC = yuriwidget.c
-TOML_DIR = deps/tomlc99
-TOML_REPO = https://raw.githubusercontent.com/cktan/tomlc99/master
-TOML_FILES = toml.h toml.c
+BIN = yuriwidget
 
-CFLAGS = `pkg-config --cflags gtk4` -I$(TOML_DIR)
-LDFLAGS = `pkg-config --libs gtk4`
-OBJ = $(SRC:.c=.o)
+.PHONY: all check-deps install-deps clean
 
-all: check-deps toml $(APP_NAME)
+all: check-deps $(BIN)
 
-$(APP_NAME): $(OBJ) $(TOML_DIR)/toml.c
-	$(CC) -o $@ $(OBJ) $(TOML_DIR)/toml.c $(CFLAGS) $(LDFLAGS)
-
-%.o: %.c
-	$(CC) -c $< $(CFLAGS)
-
-.PHONY: toml
-toml:
-	@mkdir -p $(TOML_DIR)
-	@for file in $(TOML_FILES); do \
-		if [ ! -f "$(TOML_DIR)/$$file" ]; then \
-			echo "Scarico $$file..."; \
-			curl -sSfL "$(TOML_REPO)/$$file" -o "$(TOML_DIR)/$$file"; \
-		fi \
-	done
-
-.PHONY: check-deps
 check-deps:
-	@command -v pkg-config >/dev/null || { echo "Errore: pkg-config mancante."; exit 1; }
-	@pkg-config --exists gtk4 || { \
-		echo "Errore: GTK 4 non trovato."; \
-		echo "Su Arch Linux puoi installarlo con: sudo pacman -S gtk4"; \
-		exit 1; \
-	}
-	@command -v curl >/dev/null || { echo "Errore: curl mancante (necessario per scaricare tomlc99)."; exit 1; }
+	@pkg-config --exists gtk4 || $(MAKE) install-deps
+	@pkg-config --exists gtk-layer-shell || $(MAKE) install-deps
 
-.PHONY: clean
+install-deps:
+	@echo "Installazione delle dipendenze mancanti con pacman..."
+	@sudo pacman -Sy --noconfirm gtk4 gtk-layer-shell
+
+$(BIN): $(SRC)
+	$(CC) -o $@ $^ $(CFLAGS) $(LDLIBS)
+
 clean:
-	rm -f $(APP_NAME) $(OBJ)
+	rm -f $(BIN)
