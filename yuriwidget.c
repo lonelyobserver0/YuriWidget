@@ -1,9 +1,13 @@
+/* yuriwidget.c */
+#define GDK_DISABLE_DEPRECATION_WARNINGS
+
 #include <gtk/gtk.h>
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include "deps/tomlc99/toml.h"
+#include <gtk-layer-shell.h>
 
 static GtkWidget *window;
 static GtkWidget *label;
@@ -35,10 +39,10 @@ int load_config(const char *config_path, char *label_text, size_t label_size, in
     }
 
     const char *label_raw = toml_raw_in(widget, "label");
-    if (label_raw && toml_rtostr(label_raw, label_text, label_size) != 0) {
-        fprintf(stderr, "Errore nella lettura di 'label'\n");
-        toml_free(conf);
-        return -1;
+    if (label_raw) {
+        const char *str = toml_strip_quotes(label_raw);
+        strncpy(label_text, str, label_size - 1);
+        label_text[label_size - 1] = '\0';
     }
 
     int64_t x_val, y_val;
@@ -57,10 +61,6 @@ int load_config(const char *config_path, char *label_text, size_t label_size, in
     return 0;
 }
 
-void apply_position(GtkWindow *win, int x, int y) {
-    gtk_window_move(win, x, y);
-}
-
 static void activate(GtkApplication *app, gpointer user_data) {
     char label_text[256] = "Default text";
     load_config("config.toml", label_text, sizeof(label_text), &pos_x, &pos_y, &always_on_top, &transparent);
@@ -68,10 +68,20 @@ static void activate(GtkApplication *app, gpointer user_data) {
     window = gtk_application_window_new(app);
     gtk_window_set_title(GTK_WINDOW(window), "YuriWidget");
     gtk_window_set_default_size(GTK_WINDOW(window), 200, 100);
-    apply_position(GTK_WINDOW(window), pos_x, pos_y);
 
-    if (always_on_top)
-        gtk_window_set_keep_above(GTK_WINDOW(window), TRUE);
+    gtk_layer_init_for_window(GTK_WINDOW(window));
+    gtk_layer_set_layer(GTK_WINDOW(window), GTK_LAYER_SHELL_LAYER_TOP);
+    gtk_layer_set_keyboard_mode(GTK_WINDOW(window), GTK_LAYER_SHELL_KEYBOARD_MODE_NONE);
+    gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_TOP, TRUE);
+    gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_LEFT, TRUE);
+    gtk_layer_set_margin(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_TOP, pos_y);
+    gtk_layer_set_margin(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_LEFT, pos_x);
+
+    if (transparent) {
+        gtk_widget_set_app_paintable(window, TRUE);
+        GdkSurface *surface = gtk_native_get_surface(gtk_widget_get_native(window));
+        gdk_surface_set_opaque_region(surface, NULL);
+    }
 
     label = gtk_label_new(label_text);
     gtk_window_set_child(GTK_WINDOW(window), label);
@@ -83,7 +93,7 @@ int main(int argc, char **argv) {
     GtkApplication *app;
     int status;
 
-    app = gtk_application_new("org.example.yuriwidget", G_APPLICATION_FLAGS_NONE);
+    app = gtk_application_new("org.example.yuriwidget", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
     status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);
