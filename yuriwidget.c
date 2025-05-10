@@ -1,102 +1,67 @@
-/* yuriwidget.c */
-#define GDK_DISABLE_DEPRECATION_WARNINGS
-
+// yuriwidget.c
 #include <gtk/gtk.h>
-#include <string.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include "deps/tomlc99/toml.h"
 #include <gtk-layer-shell.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "toml.h"
 
-static GtkWidget *window;
-static GtkWidget *label;
-static int pos_x = 100, pos_y = 100;
-static gboolean always_on_top = FALSE;
-static gboolean transparent = FALSE;
+#define CONFIG_PATH "yuriwidget.toml"
+#define MAX_LABEL_LEN 256
 
-int load_config(const char *config_path, char *label_text, size_t label_size, int *x, int *y, gboolean *always_on_top, gboolean *transparent) {
-    FILE *fp = fopen(config_path, "r");
-    if (!fp) {
-        fprintf(stderr, "Impossibile aprire il file di configurazione: %s\n", config_path);
-        return -1;
-    }
+static void apply_position(GtkWindow *win, int x, int y) {
+    gtk_window_move(win, x, y);
+}
+
+static void load_config(char *label_text, size_t label_size, int *x, int *y) {
+    FILE *fp = fopen(CONFIG_PATH, "r");
+    if (!fp) return;
 
     char errbuf[200];
     toml_table_t *conf = toml_parse_file(fp, errbuf, sizeof(errbuf));
     fclose(fp);
+    if (!conf) return;
 
-    if (!conf) {
-        fprintf(stderr, "Errore nel parsing del file TOML: %s\n", errbuf);
-        return -1;
+    toml_datum_t label_datum = toml_string_in(conf, "label");
+    if (label_datum.ok) {
+        snprintf(label_text, label_size, "%s", label_datum.u.s);
+        free(label_datum.u.s);
     }
 
-    toml_table_t *widget = toml_table_in(conf, "widget");
-    if (!widget) {
-        fprintf(stderr, "Nessuna sezione [widget] nel file TOML\n");
-        toml_free(conf);
-        return -1;
-    }
-
-    const char *label_raw = toml_raw_in(widget, "label");
-    if (label_raw) {
-        const char *str = toml_strip_quotes(label_raw);
-        strncpy(label_text, str, label_size - 1);
-        label_text[label_size - 1] = '\0';
-    }
-
-    int64_t x_val, y_val;
-    if (toml_rtoi(toml_raw_in(widget, "x"), &x_val) == 0)
-        *x = (int)x_val;
-    if (toml_rtoi(toml_raw_in(widget, "y"), &y_val) == 0)
-        *y = (int)y_val;
-
-    int64_t atop_val, transp_val;
-    if (toml_rtoi(toml_raw_in(widget, "always_on_top"), &atop_val) == 0)
-        *always_on_top = atop_val ? TRUE : FALSE;
-    if (toml_rtoi(toml_raw_in(widget, "transparent"), &transp_val) == 0)
-        *transparent = transp_val ? TRUE : FALSE;
+    toml_datum_t x_datum = toml_int_in(conf, "x");
+    toml_datum_t y_datum = toml_int_in(conf, "y");
+    if (x_datum.ok) *x = (int)x_datum.u.i;
+    if (y_datum.ok) *y = (int)y_datum.u.i;
 
     toml_free(conf);
-    return 0;
 }
 
 static void activate(GtkApplication *app, gpointer user_data) {
-    char label_text[256] = "Default text";
-    load_config("config.toml", label_text, sizeof(label_text), &pos_x, &pos_y, &always_on_top, &transparent);
-
-    window = gtk_application_window_new(app);
-    gtk_window_set_title(GTK_WINDOW(window), "YuriWidget");
-    gtk_window_set_default_size(GTK_WINDOW(window), 200, 100);
+    GtkWidget *window = gtk_window_new();
+    gtk_window_set_application(GTK_WINDOW(window), app);
 
     gtk_layer_init_for_window(GTK_WINDOW(window));
-    gtk_layer_set_layer(GTK_WINDOW(window), GTK_LAYER_SHELL_LAYER_TOP);
-    gtk_layer_set_keyboard_mode(GTK_WINDOW(window), GTK_LAYER_SHELL_KEYBOARD_MODE_NONE);
-    gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_TOP, TRUE);
-    gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_LEFT, TRUE);
-    gtk_layer_set_margin(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_TOP, pos_y);
-    gtk_layer_set_margin(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_LEFT, pos_x);
+    gtk_layer_set_layer(GTK_WINDOW(window), GTK_LAYER_SHELL_LAYER_OVERLAY);
+    gtk_layer_auto_exclusive_zone_enable(GTK_WINDOW(window));
 
-    if (transparent) {
-        gtk_widget_set_app_paintable(window, TRUE);
-        GdkSurface *surface = gtk_native_get_surface(gtk_widget_get_native(window));
-        gdk_surface_set_opaque_region(surface, NULL);
-    }
+    gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
+    gtk_window_set_hide_on_close(GTK_WINDOW(window), TRUE);
 
-    label = gtk_label_new(label_text);
+    char label_text[MAX_LABEL_LEN] = "Default";
+    int x = 100, y = 100;
+    load_config(label_text, sizeof(label_text), &x, &y);
+
+    GtkWidget *label = gtk_label_new(label_text);
     gtk_window_set_child(GTK_WINDOW(window), label);
 
-    gtk_window_present(GTK_WINDOW(window));
+    gtk_widget_show(window);
+    apply_position(GTK_WINDOW(window), x, y);
 }
 
 int main(int argc, char **argv) {
-    GtkApplication *app;
-    int status;
-
-    app = gtk_application_new("org.example.yuriwidget", G_APPLICATION_DEFAULT_FLAGS);
+    GtkApplication *app = gtk_application_new("org.example.yuriwidget", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
-    status = g_application_run(G_APPLICATION(app), argc, argv);
+    int status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);
-
     return status;
 }
