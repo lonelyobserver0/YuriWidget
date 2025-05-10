@@ -1,3 +1,3 @@
 #!/bin/bash
 
-gcc yuriwidget.c toml.c -o yuriwidget `pkg-config --cflags --libs gtk4`
+gcc yuriwidget.c -o yuriwidget `pkg-config --cflags --libs gtk4`
