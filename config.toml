@@ -1,0 +1,9 @@
+[widget]
+label = "Shutdown"
+button_text = "Spegni"
+position_type = "preset"
+position = "top-right"
+
+
+[action]
+command = "systemctl poweroff"
