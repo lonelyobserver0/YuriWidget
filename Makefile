@@ -1,20 +1,25 @@
+
+APPNAME = yuriwidget
 CC = cc
-CFLAGS = -Ideps/tomlc99 `pkg-config --cflags gtk4 gtk-layer-shell`
-LDLIBS = `pkg-config --libs gtk4 gtk-layer-shell`
 SRC = yuriwidget.c
-BIN = yuriwidget
+OBJ = $(SRC:.c=.o)
+DEPS_DIR = deps/tomlc99
+PKG_MODULES = gtk4 gtk-layer-shell-0
+PKG_CFLAGS = $(shell pkg-config --cflags $(PKG_MODULES))
+PKG_LIBS = $(shell pkg-config --libs $(PKG_MODULES))
 
-.PHONY: all deps clean
+all: $(APPNAME)
 
-all: $(BIN)
+$(APPNAME): $(OBJ)
+	$(CC) -o $@ $^ -I$(DEPS_DIR) $(PKG_CFLAGS) $(PKG_LIBS)
 
-$(BIN): $(SRC)
-	$(CC) -o $@ $^ $(CFLAGS) $(LDLIBS)
+%.o: %.c
+	$(CC) -c $< -I$(DEPS_DIR) $(PKG_CFLAGS)
 
 deps:
-	@echo "Controllo delle dipendenze..."
-	@pkg-config --exists gtk4 || { echo "gtk4 non trovato, installazione..."; sudo pacman -Sy --noconfirm gtk4; }
-	@pkg-config --exists gtk-layer-shell || { echo "gtk-layer-shell non trovato, installazione..."; sudo pacman -Sy --noconfirm gtk-layer-shell; }
+	git submodule update --init --depth 1 --recommend-shallow deps/tomlc99
 
 clean:
-	rm -f $(BIN)
+	rm -f $(APPNAME) $(OBJ)
+
+.PHONY: all clean deps
