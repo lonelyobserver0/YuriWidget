@@ -41,8 +41,8 @@ static void load_config(GtkWidget *label, GtkWindow *window) {
 }
 
 static void activate(GtkApplication *app, gpointer user_data) {
-    GtkWidget *window = gtk_window_new();
-    gtk_window_set_application(GTK_WINDOW(window), app);
+    GtkWidget *window = gtk_application_window_new(app);
+
     gtk_window_set_title(GTK_WINDOW(window), "YuriWidget");
     gtk_window_set_default_size(GTK_WINDOW(window), 200, 100);
     gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
