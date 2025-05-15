@@ -1,37 +1,15 @@
-APPNAME = yuriwidget
-CC = cc
+CC = gcc
+CFLAGS = -Wall -Wextra -O2 `pkg-config --cflags gtk4 gtk-layer-shell`
+LDFLAGS = `pkg-config --libs gtk4 gtk-layer-shell`
 SRC = yuriwidget.c deps/tomlc99/toml.c
-OBJ = $(SRC:.c=.o)
-DEPS_DIR = deps/tomlc99
-PKG_MODULES = gtk4 gtk-layer-shell-0
-PKG_CFLAGS = $(shell pkg-config --cflags $(PKG_MODULES))
-PKG_LIBS = $(shell pkg-config --libs $(PKG_MODULES))
-PREFIX = /usr/local
-SYSCONFDIR = /etc/yuriwidget
-CONFIG_SRC = config/config.toml
-CONFIG_DEST = $(DESTDIR)$(SYSCONFDIR)/config.toml
+OUT = yuriwidget
 
-all: $(APPNAME)
+all: $(OUT)
 
-$(APPNAME): $(OBJ)
-	$(CC) -o $@ $^ $(PKG_CFLAGS) $(PKG_LIBS)
-
-%.o: %.c
-	$(CC) -c $< -I$(DEPS_DIR) $(PKG_CFLAGS)
-
-deps:
-	git submodule update --init --depth 1 --recommend-shallow $(DEPS_DIR)
-
-install: $(APPNAME)
-	install -Dm755 $(APPNAME) $(DESTDIR)$(PREFIX)/bin/$(APPNAME)
-	@if [ ! -f $(CONFIG_DEST) ]; then \
-		echo "Installing default config to $(CONFIG_DEST)"; \
-		install -Dm644 $(CONFIG_SRC) $(CONFIG_DEST); \
-	else \
-		echo "Config already exists at $(CONFIG_DEST), skipping."; \
-	fi
+$(OUT): $(SRC)
+	$(CC) $(CFLAGS) $(SRC) -o $(OUT) $(LDFLAGS)
 
 clean:
-	rm -f $(APPNAME) $(OBJ)
+	rm -f $(OUT)
 
-.PHONY: all clean deps install
+.PHONY: all clean
