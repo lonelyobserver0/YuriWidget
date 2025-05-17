@@ -18,8 +18,12 @@ gtk4_dir_short=${gtk4_dir_ext#*/}
 gtk4_dir="/$gtk4_dir_short"
 echo "GTK4 Directory: $gtk4_dir"
 
+# Trova il percorso della directory di pango.h
+pango_path=$(find_lib pango.h)
+pango_dir="${path%/*/*}"
+
 # Elenco delle librerie da cercare
-librerie=("gtk4-layer-shell.h" "glib.h" "glibconfig.h")
+librerie=("gtk4-layer-shell.h" "glib.h" "cairo.h")
 
 opzioni_inclusione=""
 
@@ -33,6 +37,6 @@ for libreria in "${librerie[@]}"; do
 done
 
 echo "Opzioni di inclusione: $opzioni_inclusione"
+echo "--------------------------------------------------"
 
-
-gcc -o yuriwidget yuriwidget.c "-I$gtk4_dir" $opzioni_inclusione `pkg-config --cflags --libs gtk4 gtk-layer-shell`
+gcc -o yuriwidget yuriwidget.c "-I$gtk4_dir" "-I/usr/lib/glib-2.0/include" "-I$pango_dir" $opzioni_inclusione `pkg-config --cflags --libs gtk4 gtk-layer-shell`
