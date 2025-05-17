@@ -1,5 +1,5 @@
 #include <gtk/gtk.h>
-#include <gtk-layer-shell/gtk-layer-shell.h>
+#include <gtk4-layer-shell.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
