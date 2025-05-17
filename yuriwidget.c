@@ -6,14 +6,38 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#include "toml-c.h" // Scarica da: https://github.com/arp242/toml-c/blob/main/header/toml-c.h
+#include "toml-c.h"
+
+//==================== LOG ============================
+#define ANSI_RESET   "\033[0m"
+#define ANSI_RED     "\033[31m"
+#define ANSI_GREEN   "\033[32m"
+#define ANSI_YELLOW  "\033[33m"
+#define ANSI_BLUE    "\033[34m"
+
+static void log_info(const char *msg) {
+    fprintf(stderr, ANSI_BLUE "[INFO] %s" ANSI_RESET "\n", msg);
+}
+
+static void log_success(const char *msg) {
+    fprintf(stderr, ANSI_GREEN "[OK] %s" ANSI_RESET "\n", msg);
+}
+
+static void log_warn(const char *msg) {
+    fprintf(stderr, ANSI_YELLOW "[WARN] %s" ANSI_RESET "\n", msg);
+}
+
+static void log_error(const char *msg) {
+    fprintf(stderr, ANSI_RED "[ERROR] %s" ANSI_RESET "\n", msg);
+}
+
+//======================================================
 
 #define CONFIG_DIR "/etc/yuriwidget"
 #define CONFIG_PATH CONFIG_DIR "/config.toml"
 #define STYLE_SCSS CONFIG_DIR "/config.scss"
 #define STYLE_CSS  CONFIG_DIR "/config.css"
 
-// Compila config.scss in config.css usando sassc se necessario
 static void compile_scss() {
     struct stat scss_stat, css_stat;
 
@@ -22,7 +46,6 @@ static void compile_scss() {
         return;
     }
 
-    // Compila solo se config.css è mancante o più vecchio
     if (stat(STYLE_CSS, &css_stat) != 0 || scss_stat.st_mtime > css_stat.st_mtime) {
         g_message("Compilazione di %s in %s", STYLE_SCSS, STYLE_CSS);
         int ret = system("sassc " STYLE_SCSS " " STYLE_CSS);
@@ -31,9 +54,8 @@ static void compile_scss() {
     }
 }
 
-// Carica il file CSS nel contesto GTK
 static void load_style(GtkWidget *widget) {
-    compile_scss(); // Compila prima di caricare
+    compile_scss();
 
     GtkCssProvider *provider = gtk_css_provider_new();
     GError *error = NULL;
@@ -107,9 +129,17 @@ static void activate(GtkApplication *app, gpointer user_data) {
     gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
     gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
 
+    // Aggiunta classe CSS alla finestra
+    gtk_widget_add_css_class(window, "yuri-window");
+
     GtkWidget *label = gtk_label_new(NULL);
     gtk_widget_set_halign(label, GTK_ALIGN_CENTER);
     gtk_widget_set_valign(label, GTK_ALIGN_CENTER);
+
+    // Aggiunta classe e ID CSS all’etichetta
+    gtk_widget_add_css_class(label, "yuri-label");
+    gtk_widget_set_name(label, "main-label");
+
     gtk_window_set_child(GTK_WINDOW(window), label);
 
     gtk_layer_init_for_window(GTK_WINDOW(window));
