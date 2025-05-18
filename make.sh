@@ -1,5 +1,10 @@
 #!/bin/bash
 
+echo ""
+echo "--------------------------------------------------"
+echo ""
+
+
 find_lib() {
     data_gen=$(find /usr/include -name "$1" 2>/dev/null)  # Ignora gli errori
     if [[ -n "$data_gen" ]]; then
@@ -20,10 +25,18 @@ echo "GTK4 Directory: $gtk4_dir"
 
 # Trova il percorso della directory di pango.h
 pango_path=$(find_lib pango.h)
-pango_dir="${path%/*/*}"
+echo "Pango Directory: $pango_path"
+pango_dir="${pango_path%/*}"
+echo "Pango Directory: $pango_dir"
+
+# Trova il percorso della directory di pango.h
+gdk_pixbuf_path=$(find_lib gdk-pixbuf.h)
+echo "GDK-Pixbuf Directory: $gdk_pixbuf_path"
+gdk_pixbuf_dir="${gdk_pixbuf_path%/*}"
+echo "GDK-Pixbuf Directory: $gdk_pixbuf_dir"
 
 # Elenco delle librerie da cercare
-librerie=("gtk4-layer-shell.h" "glib.h" "cairo.h")
+librerie=("gtk4-layer-shell.h" "glib.h" "cairo.h" "hb.h" "graphene.h")
 
 opzioni_inclusione=""
 
@@ -37,6 +50,9 @@ for libreria in "${librerie[@]}"; do
 done
 
 echo "Opzioni di inclusione: $opzioni_inclusione"
+echo ""
 echo "--------------------------------------------------"
+echo ""
 
-gcc -o yuriwidget yuriwidget.c "-I$gtk4_dir" "-I/usr/lib/glib-2.0/include" "-I$pango_dir" $opzioni_inclusione `pkg-config --cflags --libs gtk4 gtk-layer-shell`
+
+gcc -o yuriwidget yuriwidget.c "-I/usr/lib/glib-2.0/include" "-I/usr/lib/graphene-1.0/include" "-I$gtk4_dir" "-I$pango_dir" "-I$gdk_pixbuf_dir" $opzioni_inclusione
