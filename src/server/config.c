@@ -1,4 +1,4 @@
-#include "server/config.h"
+#include "src/server/include/config.h"
 #include <json-glib/json-glib.h>
 #include <glib.h>
 
