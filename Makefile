@@ -5,7 +5,7 @@ LDFLAGS = `pkg-config --libs gtk+-3.0 webkit2gtk-4.0 json-glib-1.0` -pthread
 INCLUDES = -Iinclude -Isrc/server/headers
 
 CLIENT_SRC = src/client/yuriwidget_client.c
-CLIENT_BIN = build/yuriwidget-client
+CLIENT_BIN = build/yuriwidgetctl
 
 SERVER_SRC = \
     src/server/main.c \
