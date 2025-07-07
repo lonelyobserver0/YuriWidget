@@ -1,12 +1,18 @@
 #include <gtk/gtk.h>
 #include <pthread.h>
 #include <glib.h> // Necessario per GOptionContext e g_free
+#include <string.h> // Necessario per strchr
 #include "window.h" // Assicurati che questo file esista e sia corretto
 #include "config.h" // Assicurati che questo file esista e sia corretto (contiene Config e funzioni di caricamento)
 #include "socket_server.h" // Assicurati che questo file esista e sia corretto
 
-// Le dichiarazioni delle funzioni da config.h non sono più necessarie qui
-// se config.h è correttamente aggiornato e incluso.
+// Dichiarazioni esplicite delle funzioni da config.h per evitare errori di dichiarazione implicita.
+// Idealmente, queste dovrebbero essere solo in config.h e main.c dovrebbe solo includere config.h.
+// Ma aggiungerle qui garantisce che il compilatore le veda.
+extern char *get_default_config_json_path();
+extern Config *config_load_from_file(const char *filename);
+extern char *find_file_in_config_dirs(const char *filename_to_find);
+
 
 int main(int argc, char *argv[]) {
     // Variabile per memorizzare il percorso del file di configurazione specificato dall'utente
@@ -36,12 +42,13 @@ int main(int argc, char *argv[]) {
     // Determina il percorso finale del file di configurazione
     if (user_specified_config_arg != NULL) {
         // Se l'utente ha specificato un argomento, controlla se contiene un separatore di percorso
+        // o se inizia con un prefisso di percorso relativo/assoluto
         if (g_str_has_prefix(user_specified_config_arg, "/") || g_str_has_prefix(user_specified_config_arg, "./") || g_str_has_prefix(user_specified_config_arg, "../") || strchr(user_specified_config_arg, G_DIR_SEPARATOR) != NULL) {
             // Sembra essere un percorso (assoluto o relativo con sottocartelle)
             // Costruisci il percorso assoluto relativo alla directory di configurazione dell'app
-            char *user_config_dir = g_get_user_config_dir();
+            const char *user_config_dir = g_get_user_config_dir(); // Correzione: const char *
             char *base_app_config_dir = g_build_filename(user_config_dir, "yuriwidget", NULL);
-            g_free(user_config_dir);
+            // g_free(user_config_dir); // Non liberare, è una stringa gestita da GLib
 
             final_config_file_path = g_build_filename(base_app_config_dir, user_specified_config_arg, NULL);
             g_free(base_app_config_dir);
