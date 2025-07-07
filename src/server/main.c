@@ -1,8 +1,8 @@
 #include <gtk/gtk.h>
 #include <pthread.h>
-#include "src/server/include/window.h"
-#include "src/server/include/config.h"
-#include "src/server/include/socket_server.h"
+#include "window.h"
+#include "config.h"
+#include "socket_server.h"
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {

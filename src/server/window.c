@@ -1,4 +1,4 @@
-#include "src/server/include/window.h"
+#include "window.h"
 #include <webkit2/webkit2.h>
 
 struct _AppContext {

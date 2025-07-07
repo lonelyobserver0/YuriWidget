@@ -1,5 +1,5 @@
 #pragma once
 
-#include "server/window.h"
+#include "window.h"
 
 void *start_socket_server(void *data);

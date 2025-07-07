@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -g `pkg-config --cflags gtk+-3.0 webkit2gtk-4.0 json-glib-1.0`
 LDFLAGS = `pkg-config --libs gtk+-3.0 webkit2gtk-4.0 json-glib-1.0` -pthread
 
-INCLUDES = -Iinclude
+INCLUDES = -Iinclude -Isrc/server/headers
 
 CLIENT_SRC = src/client/yuriwidget_client.c
 CLIENT_BIN = build/yuriwidget-client

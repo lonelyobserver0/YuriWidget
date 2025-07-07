@@ -1,5 +1,5 @@
-#include "src/server/include/socket_server.h"
-#include "src/server/include/window.h"
+#include "socket_server.h"
+#include "window.h"
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
