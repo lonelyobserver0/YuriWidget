@@ -2,7 +2,7 @@
 
 A widget engine that renders HTML, CSS, and JavaScript.
 
-Using GTK-4, it is composed of a client (`yuriwidget_client`) and a server (`yuriwidget`), allowing the user to run commands that change the app status in real-time.
+Using GTK-4, it is composed of a client (`yuriwidgetctl`) and a server (`yuriwidget`), allowing the user to run commands that change the app status in real-time.
 
 The use of sockets means that it is not bound by the OS, particularly supporting the infamous window compositor
 Hyprland.
@@ -29,7 +29,7 @@ webkit2gtk
 
 Commands:
 
-`yuriwidget [path to configuration file (config.json)]`
+`yuriwidget -c [path to configuration file (config.json)]`
 
 ────────────────────────
 
@@ -37,6 +37,7 @@ Commands:
 ### Configuration file
 
 This file is to be saved in ~/.config/yuriwidget/ with the main html, css and js files too, if they exists.
+After `-c` it expects relative path (relaive to ~/.config/yuriwidget/) to config.json. It is meant to have several sub-directory, each for every widget with theirs config.json.
 
 <pre> ```json
 {
@@ -59,13 +60,13 @@ This file is to be saved in ~/.config/yuriwidget/ with the main html, css and js
 | `window-height`       | Integer   | If the window is not set like floating, this value will be overwritten    |
 | `window-x-position`   | Integer   | If the window is not set like floating, this value will be overwritten    |
 | `window-y-position`   | Integer   | If the window is not set like floating, this value will be overwritten    |
-| `transparent-bool`    | Boolean   | If use the opacity value of your WM or your DE                            |
+| `transparent-bool`    | Boolean   | If true it uses the opacity value of your WM or your DE                            |
 
 ────────────────────────
 
 ### Manage widgets
 
-`yuriwidget_client [command]`
+`yuriwidgetctl [command]`
 
 | Command                   | Description                                                                                        |
 |---------------------------|----------------------------------------------------------------------------------------------------|
