@@ -7,7 +7,6 @@ Using GTK-4, it is composed of a client (`yuriwidgetctl`) and a server (`yuriwid
 The use of sockets means that it is not bound by the OS, particularly supporting the infamous window compositor
 Hyprland.
 
-
 ## Installation
 
 ### Dependencies
@@ -20,8 +19,7 @@ webkit2gtk
 - Move to the repo folder
 - To build: `make`
 - To install: `make install`
-- (Optional) To clean (remove bin file from *build* directory) `make clean`
-
+- (Optional) To clean (remove bin file from _build_ directory) `make clean`
 
 ## Usage
 
@@ -32,7 +30,6 @@ Commands:
 `yuriwidget -c [path to configuration file (config.json)]`
 
 ────────────────────────
-
 
 ### Configuration file
 
@@ -47,20 +44,22 @@ After `-c` it expects relative path (relaive to ~/.config/yuriwidget/) to config
   "height": [window-height],
   "x": [window-x-position],
   "y": [window-y-position],
-  "transparent": [transparent-bool]
+  "transparent": [transparent-bool],
+  "timer": [time-before-close-window]
 }
 
 ``` </pre>
 
-| Option                | Data type | Description                                                               |
-|-----------------------|-----------|---------------------------------------------------------------------------|
-| `widget-title`        | String    | Window title, it will be used by any other system to as ID                |
-| `path-to-html-file`   | String    | Path to your html file to show or remote URL                              |
-| `window-width`        | Integer   | If the window is not set like floating, this value will be overwritten    |
-| `window-height`       | Integer   | If the window is not set like floating, this value will be overwritten    |
-| `window-x-position`   | Integer   | If the window is not set like floating, this value will be overwritten    |
-| `window-y-position`   | Integer   | If the window is not set like floating, this value will be overwritten    |
-| `transparent-bool`    | Boolean   | If true it uses the opacity value of your WM or your DE                            |
+| Option                     | Data type | Description                                                            |
+| -------------------------- | --------- | ---------------------------------------------------------------------- |
+| `widget-title`             | String    | Window title, it will be used by any other system to as ID             |
+| `path-to-html-file`        | String    | Path to your html file to show or remote URL                           |
+| `window-width`             | Integer   | If the window is not set like floating, this value will be overwritten |
+| `window-height`            | Integer   | If the window is not set like floating, this value will be overwritten |
+| `window-x-position`        | Integer   | If the window is not set like floating, this value will be overwritten |
+| `window-y-position`        | Integer   | If the window is not set like floating, this value will be overwritten |
+| `transparent-bool`         | Boolean   | If true it uses the opacity value of your WM or your DE                |
+| `time-before-close-window` | Integer   | Expiration time for widget                                             |
 
 ────────────────────────
 
@@ -68,11 +67,11 @@ After `-c` it expects relative path (relaive to ~/.config/yuriwidget/) to config
 
 `yuriwidgetctl [command]`
 
-| Command                   | Description                                                                                        |
-|---------------------------|----------------------------------------------------------------------------------------------------|
-| `hide <window-title>`     | Make the widget whose window has title <window-title> invisible by view, selection and inputs      |
-| `show <window-title>`     | Make the hidden widget whose window has title <window-title> visible by view, selection and inputs |
-| `reload <window-title>`   | Re-create the widget whose window has title <window-title>                                         |
+| Command                 | Description                                                                                        |
+| ----------------------- | -------------------------------------------------------------------------------------------------- |
+| `hide <window-title>`   | Make the widget whose window has title <window-title> invisible by view, selection and inputs      |
+| `show <window-title>`   | Make the hidden widget whose window has title <window-title> visible by view, selection and inputs |
+| `reload <window-title>` | Re-create the widget whose window has title <window-title>                                         |
 
 ## Little advices
 
