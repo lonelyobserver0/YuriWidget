@@ -6,8 +6,19 @@ static gboolean close_window_timer_cb(gpointer data) {
     AppContext *ctx = (AppContext *)data;
     if (ctx && ctx->window) {
         gtk_widget_destroy(GTK_WIDGET(ctx->window));
+        // Impostiamo l'ID a 0 per evitare di rimuoverlo una seconda volta in destroy_app_context
+        ctx->timer_id = 0;
     }
     return G_SOURCE_REMOVE; // Rimuove il timer dopo l'esecuzione
+}
+
+// Funzione di callback per il segnale "destroy"
+static void on_window_destroy(GtkWindow *window, AppContext *ctx) {
+    g_print("Finestra chiusa. Finestre rimaste: %d\n", (*(ctx->open_windows_count) - 1));
+    if (--(*ctx->open_windows_count) == 0) {
+        gtk_main_quit();
+    }
+    destroy_app_context(ctx);
 }
 
 AppContext *create_app_context(Config *cfg, int *open_windows_count) {
@@ -31,9 +42,8 @@ AppContext *create_app_context(Config *cfg, int *open_windows_count) {
     webkit_web_view_load_uri(ctx->webview, cfg->url);
     gtk_container_add(GTK_CONTAINER(ctx->window), GTK_WIDGET(ctx->webview));
 
-    // Connette il segnale "destroy" a una funzione che decrementa il contatore
-    // e termina l'applicazione solo quando tutte le finestre sono chiuse
-    g_signal_connect(ctx->window, "destroy", G_CALLBACK(destroy_app_context), ctx);
+    // Connette il segnale "destroy" alla nuova funzione di callback
+    g_signal_connect(ctx->window, "destroy", G_CALLBACK(on_window_destroy), ctx);
 
     // Imposta il timer se specificato
     if (cfg->timer_seconds > 0) {
@@ -57,17 +67,9 @@ void destroy_app_context(AppContext *ctx) {
         g_source_remove(ctx->timer_id);
     }
     
-    // Libera la configurazione del widget
-    config_free(ctx->config);
+    // La configurazione non viene più liberata qui per evitare il double-free.
+    // Viene liberata dalla GPtrArray al termine del programma.
     
-    // Decrementa il contatore e termina l'applicazione se è l'ultima finestra
-    if (ctx->open_windows_count) {
-        g_print("Finestra chiusa. Finestre rimaste: %d\n", (*(ctx->open_windows_count) - 1));
-        if (--(*ctx->open_windows_count) == 0) {
-            gtk_main_quit();
-        }
-    }
-
     g_free(ctx);
 }
 

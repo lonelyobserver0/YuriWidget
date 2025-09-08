@@ -94,35 +94,31 @@ GPtrArray *load_all_widget_configs() {
 }
 
 char *find_file_in_config_dirs(const char *filename_to_find) {
-    char *base_config_dir = get_default_config_dir_path();
-    char *found_path = NULL;
-    GFile *dir_gfile = g_file_new_for_path(base_config_dir);
-    GFileEnumerator *enumerator = g_file_enumerate_children(dir_gfile, "standard::name,standard::file-type", G_FILE_QUERY_INFO_NONE, NULL, NULL);
-
-    if (enumerator) {
-        GFileInfo *file_info;
-        while ((file_info = g_file_enumerator_next_file(enumerator, NULL, NULL)) != NULL) {
-            const char *child_name = g_file_info_get_name(file_info);
-            GFileType file_type = g_file_info_get_file_type(file_info);
-            char *child_path = g_build_filename(base_config_dir, child_name, NULL);
-
-            if (g_strcmp0(child_name, filename_to_find) == 0) {
-                found_path = g_strdup(child_path);
-            } else if (file_type == G_FILE_TYPE_DIRECTORY) {
-                char *recursive_path = find_file_in_config_dirs(child_path);
-                if (recursive_path) {
-                    found_path = recursive_path;
-                }
-            }
-            g_free(child_path);
-            g_object_unref(file_info);
-            if (found_path) break;
+    if (g_path_is_absolute(filename_to_find)) {
+        if (g_file_test(filename_to_find, G_FILE_TEST_EXISTS) && g_file_test(filename_to_find, G_FILE_TEST_IS_REGULAR)) {
+            return g_strdup(filename_to_find);
         }
-        g_object_unref(enumerator);
+        return NULL;
     }
-    g_object_unref(dir_gfile);
+
+    char *base_config_dir = get_default_config_dir_path();
+    char *full_path = g_build_filename(base_config_dir, filename_to_find, NULL);
+
+    if (g_file_test(full_path, G_FILE_TEST_IS_DIR)) {
+        g_free(full_path);
+        full_path = g_build_filename(base_config_dir, filename_to_find, "config.json", NULL);
+        if (g_file_test(full_path, G_FILE_TEST_EXISTS) && g_file_test(full_path, G_FILE_TEST_IS_REGULAR)) {
+            g_free(base_config_dir);
+            return full_path;
+        }
+    } else if (g_file_test(full_path, G_FILE_TEST_EXISTS) && g_file_test(full_path, G_FILE_TEST_IS_REGULAR)) {
+        g_free(base_config_dir);
+        return full_path;
+    }
+
     g_free(base_config_dir);
-    return found_path;
+    g_free(full_path);
+    return NULL;
 }
 
 void config_free(Config *cfg) {
