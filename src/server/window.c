@@ -18,6 +18,7 @@ static void on_window_destroy(GtkWindow *window, AppContext *ctx) {
     if (--(*ctx->open_windows_count) == 0) {
         gtk_main_quit();
     }
+    // Chiamiamo destroy_app_context per liberare la memoria
     destroy_app_context(ctx);
 }
 
@@ -25,6 +26,9 @@ AppContext *create_app_context(Config *cfg, int *open_windows_count) {
     AppContext *ctx = g_malloc0(sizeof(AppContext));
     ctx->config = cfg;
     ctx->open_windows_count = open_windows_count;
+    
+    // Incrementa il contatore delle finestre aperte
+    ++(*open_windows_count);
 
     ctx->window = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
     gtk_window_set_title(ctx->window, cfg->title);
@@ -67,9 +71,7 @@ void destroy_app_context(AppContext *ctx) {
         g_source_remove(ctx->timer_id);
     }
     
-    // La configurazione non viene più liberata qui per evitare il double-free.
-    // Viene liberata dalla GPtrArray al termine del programma.
-    
+    // Libera la memoria del contesto, ma non della configurazione
     g_free(ctx);
 }
 
