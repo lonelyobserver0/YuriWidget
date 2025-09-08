@@ -93,32 +93,51 @@ GPtrArray *load_all_widget_configs() {
     return configs;
 }
 
-char *find_file_in_config_dirs(const char *filename_to_find) {
-    if (g_path_is_absolute(filename_to_find)) {
-        if (g_file_test(filename_to_find, G_FILE_TEST_EXISTS) && g_file_test(filename_to_find, G_FILE_TEST_IS_REGULAR)) {
-            return g_strdup(filename_to_find);
-        }
+static char *find_file_recursive(const char *current_dir, const char *filename_to_find) {
+    GFile *dir_gfile = g_file_new_for_path(current_dir);
+    GFileEnumerator *enumerator = g_file_enumerate_children(dir_gfile, "standard::name,standard::file-type", G_FILE_QUERY_INFO_NONE, NULL, NULL);
+    char *found_path = NULL;
+
+    if (!enumerator) {
+        g_object_unref(dir_gfile);
         return NULL;
     }
 
-    char *base_config_dir = get_default_config_dir_path();
-    char *full_path = g_build_filename(base_config_dir, filename_to_find, NULL);
+    GFileInfo *file_info;
+    while ((file_info = g_file_enumerator_next_file(enumerator, NULL, NULL)) != NULL) {
+        const char *child_name = g_file_info_get_name(file_info);
+        GFileType file_type = g_file_info_get_file_type(file_info);
+        char *child_path = g_build_filename(current_dir, child_name, NULL);
 
-    if (g_file_test(full_path, G_FILE_TEST_IS_DIR)) {
-        g_free(full_path);
-        full_path = g_build_filename(base_config_dir, filename_to_find, "config.json", NULL);
-        if (g_file_test(full_path, G_FILE_TEST_EXISTS) && g_file_test(full_path, G_FILE_TEST_IS_REGULAR)) {
-            g_free(base_config_dir);
-            return full_path;
+        if (g_strcmp0(child_name, filename_to_find) == 0) {
+            found_path = child_path;
+            g_object_unref(file_info);
+            break;
         }
-    } else if (g_file_test(full_path, G_FILE_TEST_EXISTS) && g_file_test(full_path, G_FILE_TEST_IS_REGULAR)) {
-        g_free(base_config_dir);
-        return full_path;
-    }
 
+        if (file_type == G_FILE_TYPE_DIRECTORY) {
+            char *recursive_path = find_file_recursive(child_path, filename_to_find);
+            if (recursive_path) {
+                found_path = recursive_path;
+                g_free(child_path); // Liberiamo il percorso intermedio
+                g_object_unref(file_info);
+                break;
+            }
+        }
+        g_free(child_path);
+        g_object_unref(file_info);
+    }
+    
+    g_object_unref(enumerator);
+    g_object_unref(dir_gfile);
+    return found_path;
+}
+
+char *find_file_in_config_dirs(const char *filename_to_find) {
+    char *base_config_dir = get_default_config_dir_path();
+    char *found_path = find_file_recursive(base_config_dir, filename_to_find);
     g_free(base_config_dir);
-    g_free(full_path);
-    return NULL;
+    return found_path;
 }
 
 void config_free(Config *cfg) {
@@ -163,6 +182,19 @@ Config *config_load_from_file(const char *filename) {
     if (g_str_has_prefix(cfg->url, "file:")) {
         char *rel_path_segment = g_strdup(cfg->url + 5);
         char *file_dirname = g_path_get_dirname(filename);
+        char *file_basename = g_path_get_basename(file_dirname);
+        
+        // Controlla se il percorso relativo duplica il nome della cartella
+        if (file_basename && g_str_has_prefix(rel_path_segment, file_basename)) {
+            char *temp = g_strdup(rel_path_segment + strlen(file_basename));
+            if (temp && temp[0] == '/') {
+                g_free(rel_path_segment);
+                rel_path_segment = g_strdup(temp + 1);
+            }
+            g_free(temp);
+        }
+        g_free(file_basename);
+
         char *resolved_path = g_build_filename(file_dirname, rel_path_segment, NULL);
         g_free(cfg->url);
         cfg->url = g_strdup_printf("file://%s", resolved_path);
