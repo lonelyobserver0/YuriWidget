@@ -2,4 +2,4 @@
 
 make
 cd build
-./yuriwidget --config-file nier/config.json
+./yuriwidget

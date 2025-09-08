@@ -1,9 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <glib.h> // Necessario per gboolean
+#include <glib.h>
 
-// Definizione della struttura Config
 typedef struct {
     char *title;
     char *url;
@@ -12,13 +11,24 @@ typedef struct {
     int x;
     int y;
     gboolean transparent;
-    int timer_seconds; // Nuovo membro: tempo in secondi per la chiusura automatica
+    int timer_seconds;
 } Config;
 
-// Dichiarazioni delle funzioni pubbliche
-char *get_default_config_json_path();
-char *find_file_in_config_dirs(const char *filename_to_find); // Aggiunto: necessario per la ricerca ricorsiva dei file di configurazione
 Config *config_load_from_file(const char *filename);
-void config_free(Config *cfg); // Nuova funzione per liberare la memoria della Config
+void config_free(Config *cfg);
+
+char *get_default_config_dir_path();
+
+GPtrArray *load_all_widget_configs();
+
+/**
+ * @brief Cerca un file specificato (ad esempio, widgets.json) ricorsivamente
+ * all'interno della directory di configurazione dell'applicazione e delle sue sottocartelle.
+ *
+ * @param filename_to_find Il nome del file da cercare.
+ * @return Il percorso assoluto del file trovato, o NULL se non trovato.
+ * La stringa restituita deve essere liberata con g_free() dopo l'uso.
+ */
+char *find_file_in_config_dirs(const char *filename_to_find);
 
 #endif // CONFIG_H
